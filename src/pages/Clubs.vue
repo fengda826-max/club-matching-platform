@@ -22,7 +22,7 @@ onMounted(() => {
 
 const filteredClubs = computed(() => clubsStore.filteredClubs)
 const categories = computed(() => clubsStore.categories)
-const allTags = computed(() => clubsStore.all.allTags)
+const allTags = computed(() => clubsStore.allTags)
 
 const handleSearch = (value: string) => {
   clubsStore.setSearchQuery(value)

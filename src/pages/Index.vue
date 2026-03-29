@@ -24,10 +24,6 @@ const handleSearch = () => {
   }
 }
 
-const goToCategory = (categoryName: string) => {
-  router.push({ name: 'clubs', query: { category: categoryName } })
-}
-
 const selectCategory = (categoryId: string) => {
   activeCategory.value = activeCategory.value === categoryId ? '' : categoryId
 }

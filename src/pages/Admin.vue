@@ -10,6 +10,10 @@ const clubsStore = useClubsStore()
 const activeTab = ref('stats')
 const showAddDialog = ref(false)
 const showEditDialog = ref(false)
+const tabs = [
+  { id: 'stats', label: '统计', icon: '📊' },
+  { id: 'clubs', label: '社团', icon: '🎯' },
+]
 const editingClub = ref<Club | null>(null)
 
 const newClub = ref<Partial<Club>>({

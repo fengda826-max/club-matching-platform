@@ -3,7 +3,8 @@ import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useClubsStore } from '@/stores/clubs'
 import { useUserStore } from '@/stores/user'
-import { generateRecommendations, getApiKeyStatus, type MatchResult } from '@/api/claude'
+import { generateRecommendations, getApiKeyStatus } from '@/api/claude'
+import type { MatchResult } from '@/types'
 import type { UserPreference } from '@/types'
 
 const clubsStore = useClubsStore()

@@ -35,8 +35,8 @@ watch(messages, () => {
   })
 })
 
-const sendMessage = async (text?: string) => {
-  const message = text || inputMessage.value.trim()
+const sendMessage = async () => {
+  const message = inputMessage.value.trim()
   if (!message) {
     return
   }
@@ -74,7 +74,8 @@ const clearChat = () => {
 }
 
 const useSuggestedQuestion = (question: string) => {
-  sendMessage(question)
+  inputMessage.value = question
+  sendMessage()
 }
 </script>
 
