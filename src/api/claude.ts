@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
-import type { Club, UserPreference, MatchResult } from '@/types'
+import type { Club, UserPreference } from '@/types'
 
 const anthropic = new Anthropic({
   apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY || '',

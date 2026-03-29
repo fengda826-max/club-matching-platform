@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useClubsStore } from '@/stores/clubs'
 import { useUserStore } from '@/stores/user'
@@ -7,6 +8,7 @@ import { generateRecommendations, getApiKeyStatus } from '@/api/claude'
 import type { MatchResult } from '@/types'
 import type { UserPreference } from '@/types'
 
+const router = useRouter()
 const clubsStore = useClubsStore()
 const userStore = useUserStore()
 
@@ -97,7 +99,7 @@ const generateMatches = async () => {
         if (club) {
           return {
             club,
-            score: match.score,
+            score::.score,
             reasons: match.reasons,
           }
         }
@@ -116,6 +118,15 @@ const generateMatches = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const showClubDetails = (club: any) => {
+  const clubId = club.id
+  router.push({ name: 'clubs', query: { clubId } })
+}
+
+const applyToClub = (club: any) => {
+  ElMessage.success(`已向 "${club.name}" 提交申请！`)
 }
 
 const getScoreColor = (score: number) => {

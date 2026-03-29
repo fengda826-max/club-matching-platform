@@ -175,7 +175,12 @@ export const useClubsStore = defineStore('clubs', {
     },
 
     featuredClubs: (state) => {
-      return state.clubs.filter((club) => club.memberCount > 100).slice(0, 4)
+      return state.clubs
+        .filter((club) => {
+          const count = typeof club.memberCount === 'number' ? club.memberCount : parseInt(club.memberCount as string) || 0
+          return count > 100
+        })
+        .slice(0, 4)
     },
   },
 

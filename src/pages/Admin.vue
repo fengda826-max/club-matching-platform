@@ -98,7 +98,7 @@ const generateClubContent = async () => {
     const response = await generateDescription({
       clubName: newClub.value.name,
       category: newClub.value.category,
-      keyActivities: keyActivities.value.length > 0 ? keyActivities.value : [newclub.value.category],
+      keyActivities: keyActivities.value.length > 0 ? keyActivities.value : [newClub.value.category],
     })
 
     newClub.value.description = response.description
