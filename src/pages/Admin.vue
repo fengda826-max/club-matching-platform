@@ -35,9 +35,6 @@ const categories = computed(() => clubsStore.categories)
 const clubs = computed(() => clubsStore.clubs)
 const hasValidApiKey = computed(() => getApiKeyStatus().valid)
 
-const categoryOptions = computed(() =>
-  categories.value.map((cat) => ({ label: cat.name, value: cat.name })),
-)
 
 const stats = computed(() => ({
   totalClubs: clubs.value.length,
@@ -196,8 +193,8 @@ const getCategoryEmoji = (category: string) => {
   <div class="admin-page">
     <!-- Floating Elements -->
     <div class="floating-elements">
-      <div class="float-item" style="--delay: 0s; --x: 10%; --y: 15%;">⚙️</div>
-      <div class="float-item" style="--delay: -5s; --x: 90%; --y: 25%;">📊</div>
+      <div class="float-item" style="--delay: 0; --size: 80px; --x: 10%; --y: 15%;">⚙️</div>
+      <div class="float-item" style="--delay: -5s; --size: 60px; --x: 90%; --y: 25%;">📊</div>
     </div>
 
     <!-- Header -->
@@ -1094,7 +1091,7 @@ const getCategoryEmoji = (category: string) => {
 /* Category Select */
 .category-select {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr);
   gap: 12px;
 }
 
@@ -1229,7 +1226,7 @@ const getCategoryEmoji = (category: string) => {
   font-size: 14px;
   color: var(--color-gray-600);
   animation: slideUp 0.3s ease-out both;
-  animation: calc(var(--index, 0) * 0.05s) both;
+  animation-delay: calc(var(--index, 0) * 0.05s);
 }
 
 .tag-remove {
@@ -1267,23 +1264,23 @@ const getCategoryEmoji = (category: string) => {
   border: none;
 }
 
-.modal-btn.secondary {
+.modal-btn-secondary {
   background: transparent;
   color: var(--color-gray-600);
 }
 
-.modal-btn.secondary:hover {
+.modal-btn-secondary:hover {
   background: var(--color-gray-100);
   color: var(--color-dark);
 }
 
-.modal-btn.primary {
+.modal-btn-primary {
   background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25);
 }
 
-.modal-btn.primary:hover {
+.modal-btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.35);
 }

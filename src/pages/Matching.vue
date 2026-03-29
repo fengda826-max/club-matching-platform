@@ -99,13 +99,13 @@ const generateMatches = async () => {
         if (club) {
           return {
             club,
-            score::.score,
+            score: match.score,
             reasons: match.reasons,
           }
         }
         return null
       })
-      .filter((r): r is MatchResult => r !== null)
+      .filter((r) => r !== null)
       .sort((a, b) => b.score - a.score)
 
     userStore.setMatchResults(results)
@@ -133,12 +133,6 @@ const getScoreColor = (score: number) => {
   if (score >= 80) return '#67c23a'
   if (score >= 60) return '#e6a23c'
   return '#f56c6c'
-}
-
-const getScoreLevel = (score: number) => {
-  if (score >= 80) return '高度匹配'
-  if (score >= 60) return '中度匹配'
-  return '可能适合'
 }
 </script>
 
@@ -302,7 +296,7 @@ const getScoreLevel = (score: number) => {
             v-for="(result, index) in matchResults"
             :key="result.club.id"
             class="match-result-card"
-            :style="{ '--delay': index * 0.15 + 's' }"
+            :style="{ '--delay': (index * 0.15) + 's' }"
           >
             <div class="match-header">
               <div class="match-rank">
@@ -355,7 +349,7 @@ const getScoreLevel = (score: number) => {
             </div>
           </div>
         </div>
-      </sectional>
+      </section>
     </div>
   </div>
 </template>
@@ -775,7 +769,6 @@ const getScoreLevel = (score: number) => {
 
 .results-title {
   font-family: var(--font-display);
-);
   font-size: 36px;
   font-weight: 800;
   color: var(--color-dark);
@@ -1036,7 +1029,7 @@ const getScoreLevel = (score: number) => {
   background: rgba(255, 107, 107, 0.1);
 }
 
-.action.action-arrow {
+.action-arrow {
   font-size: 14px;
   opacity: 0;
   transition: all 0.3s ease;

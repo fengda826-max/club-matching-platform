@@ -723,7 +723,7 @@ const useSuggestedQuestion = (question: string) => {
   }
 
   .chat-container {
-    height: calc(100100vh - 160px);
+    height: calc(100vh - 160px);
   }
 
   .questions-grid {

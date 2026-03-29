@@ -1,4 +1,11 @@
 {
+  "extends": "@vue/tsconfig/tsconfig.json",
+  "compilerOptions": {
+    "strictPropertyInitialization": false,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "jsx": "preserve"
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
