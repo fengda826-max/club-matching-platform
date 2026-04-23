@@ -63,6 +63,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // Host frontend static files in production (after build)
 if (process.env.NODE_ENV === 'production') {
+  // __dirname = backend/dist when running compiled app
+  // ../ goes to backend/, ../../ goes to project root
   const frontendDist = path.resolve(__dirname, '../../frontend/dist')
   const indexPath = path.resolve(frontendDist, 'index.html')
   app.use(express.static(frontendDist))
@@ -74,6 +76,7 @@ if (process.env.NODE_ENV === 'production') {
 
   console.log(`📦 Frontend static files hosted from: ${frontendDist}`)
   console.log(`📄 Index HTML path: ${indexPath}`)
+  console.log(`📂 Check if file exists: ${require('fs').existsSync(indexPath)}`)
 }
 
 // Start server
