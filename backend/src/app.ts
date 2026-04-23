@@ -14,12 +14,13 @@ const prisma = new PrismaClient()
 const port = process.env.PORT || 3001
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5175'
 
-// CORS configuration: allow any localhost port in development
-// because Vite automatically switches ports when 5175 is occupied
+// CORS configuration:
+// - Development: allow any localhost port (Vite auto-switches ports)
+// - Production: allow any origin (frontend+backend on same domain, safe for demo)
 const corsOptions = {
   credentials: true,
   origin: (origin: string | undefined, callback: (err: any, allow: boolean) => void) => {
-    // Allow requests with no origin (like curl/postman)
+    // Allow requests with no origin (like curl/postman, or same-domain static files)
     if (!origin) {
       callback(null, true)
       return
@@ -29,7 +30,13 @@ const corsOptions = {
       callback(null, true)
       return
     }
-    // Check against configured origin for exact match
+    // In production (single-server deployment), allow any origin
+    // because frontend and backend are on the same domain
+    if (process.env.NODE_ENV === 'production') {
+      callback(null, true)
+      return
+    }
+    // Check against configured origin for exact match in development
     if (origin === corsOrigin) {
       callback(null, true)
       return

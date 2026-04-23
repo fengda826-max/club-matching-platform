@@ -16,12 +16,13 @@ const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
 const port = process.env.PORT || 3001;
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5175';
-// CORS configuration: allow any localhost port in development
-// because Vite automatically switches ports when 5175 is occupied
+// CORS configuration:
+// - Development: allow any localhost port (Vite auto-switches ports)
+// - Production: allow any origin (frontend+backend on same domain, safe for demo)
 const corsOptions = {
     credentials: true,
     origin: (origin, callback) => {
-        // Allow requests with no origin (like curl/postman)
+        // Allow requests with no origin (like curl/postman, or same-domain static files)
         if (!origin) {
             callback(null, true);
             return;
@@ -31,7 +32,13 @@ const corsOptions = {
             callback(null, true);
             return;
         }
-        // Check against configured origin for exact match
+        // In production (single-server deployment), allow any origin
+        // because frontend and backend are on the same domain
+        if (process.env.NODE_ENV === 'production') {
+            callback(null, true);
+            return;
+        }
+        // Check against configured origin for exact match in development
         if (origin === corsOrigin) {
             callback(null, true);
             return;
@@ -60,13 +67,18 @@ app.use((err, req, res, next) => {
 });
 // Host frontend static files in production (after build)
 if (process.env.NODE_ENV === 'production') {
-    const frontendDist = path_1.default.join(__dirname, '../../frontend/dist');
+    // __dirname = backend/dist when running compiled app
+    // ../ goes to backend/, ../../ goes to project root
+    const frontendDist = path_1.default.resolve(__dirname, '../../frontend/dist');
+    const indexPath = path_1.default.resolve(frontendDist, 'index.html');
     app.use(express_1.default.static(frontendDist));
     // SPA fallback - all non-API routes return index.html for page refresh
     app.get('*', (req, res) => {
-        res.sendFile(path_1.default.join(frontendDist, 'index.html'));
+        res.sendFile(indexPath);
     });
     console.log(`📦 Frontend static files hosted from: ${frontendDist}`);
+    console.log(`📄 Index HTML path: ${indexPath}`);
+    console.log(`📂 Check if file exists: ${require('fs').existsSync(indexPath)}`);
 }
 // Start server
 app.listen(port, () => {
