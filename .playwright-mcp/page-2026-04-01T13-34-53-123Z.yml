@@ -1,0 +1,139 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: 命令执行顺序控制与管道
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e1165]:
+        - generic [ref=e1166]:
+          - generic [ref=e1167]:
+            - generic [ref=e1168] [cursor=pointer]: 
+            - generic [ref=e1169]: 2.2 有选择的执行命令
+            - generic [ref=e1170] [cursor=pointer]: 
+          - generic [ref=e1172]:
+            - paragraph [ref=e1283]:
+              - text: 关于上面的操作，不知你有没有思考过一个问题，如果我们在让它自动顺序执行命令时，前面的命令执行不成功，而后面的命令又依赖于上一条命令的结果，那么就会造成花了时间，最终却得到一个错误的结果，而且有时候直观的看你还无法判断结果是否正确。那么我们需要能够有选择性的来执行命令，比如上一条命令执行成功才继续下一条，或者不成功又该做出其它什么处理，比如我们使用
+              - code [ref=e1284]: which
+              - text: 来查找是否安装某个命令，如果找到就执行该命令，否则什么也不做，虽然这个操作没有什么实际意义，但可帮你更好的理解一些概念：
+            - generic [ref=e1285]:
+              - code [ref=e1286]: which cowsay>/dev/null && cowsay -f head-in ohch~
+              - img "copy" [ref=e1288] [cursor=pointer]
+            - paragraph [ref=e1289]:
+              - text: 你如果没有安装
+              - code [ref=e1290]: cowsay
+              - text: ，你可以先执行一次上述命令，你会发现什么也没发生，你再安装好之后你再执行一次上述命令，你也会发现一些惊喜。
+            - paragraph [ref=e1291]:
+              - text: 上面的
+              - code [ref=e1292]: "&&"
+              - text: 就是用来实现选择性执行的，它表示如果前面的命令执行结果（不是表示终端输出的内容，而是表示命令执行状态的结果）返回 0 则执行后面的，否则不执行，你可以从
+              - code [ref=e1293]: $?
+              - text: 环境变量获取上一次命令的返回结果：
+            - paragraph [ref=e1294]:
+              - img "此处输入图片的描述" [ref=e1295]
+            - paragraph [ref=e1296]:
+              - text: 学习过 C 语言的用户应该知道在 C 语言里面
+              - code [ref=e1297]: "&&"
+              - text: 表示逻辑与，而且还有一个
+              - code [ref=e1298]: "||"
+              - text: 表示逻辑或，同样 Shell 也有一个
+              - code [ref=e1299]: "||"
+              - text: ，它们的区别就在于，shell 中的这两个符号除了也可用于表示逻辑与和或之外，就是可以实现这里的命令执行顺序的简单控制。
+              - code [ref=e1300]: "||"
+              - text: 在这里就是与
+              - code [ref=e1301]: "&&"
+              - text: 相反的控制效果，当上一条命令执行结果为
+              - code [ref=e1302]: ≠0(\$?≠0)
+              - text: 时则执行它后面的命令：
+            - generic [ref=e1303]:
+              - code [ref=e1304]: which cowsay>/dev/null || echo "cowsay has not been install, please run 'sudo apt-get install cowsay' to install"
+              - img "copy" [ref=e1306] [cursor=pointer]
+            - paragraph [ref=e1307]:
+              - text: 除了上述基本的使用之外，我们还可以结合着
+              - code [ref=e1308]: "&&"
+              - text: 和
+              - code [ref=e1309]: "||"
+              - text: 来实现一些操作，比如：
+            - generic [ref=e1310]:
+              - code [ref=e1311]: which cowsay>/dev/null && echo "exist" || echo "not exist"
+              - img "copy" [ref=e1313] [cursor=pointer]
+            - paragraph [ref=e1314]:
+              - img "此处输入图片的描述" [ref=e1315]
+            - paragraph [ref=e1316]: 我画个流程图来解释一下上面的流程：
+            - paragraph [ref=e1317]:
+              - img "1" [ref=e1318]
+        - generic [ref=e1183]:
+          - progressbar [ref=e1258]
+          - link "" [ref=e1185] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e1186]: 
+          - button "下一步" [ref=e1188] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [active] [ref=e794]:
+      - textbox "Terminal input" [active] [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e1191]:
+    - generic [ref=e1193] [cursor=pointer]: 
+    - generic [ref=e1194]:
+      - generic [ref=e1195]: 56:28
+      - button "延时" [ref=e1196] [cursor=pointer]
+    - generic [ref=e1197]:
+      - generic [ref=e1198]:
+        - generic [ref=e1199] [cursor=pointer]:
+          - generic [ref=e1200]: 
+          - generic [ref=e1201]: 桌面
+        - generic [ref=e1202] [cursor=pointer]:
+          - generic [ref=e1203]: 
+          - generic [ref=e1204]: 字符
+      - generic [ref=e1205] [cursor=pointer]:
+        - generic [ref=e1206]: 
+        - text: 切换界面
+    - generic [ref=e1208]:
+      - button " 关闭环境" [ref=e1209] [cursor=pointer]:
+        - generic [ref=e1210]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e1212] [cursor=pointer]:
+      - generic [ref=e1214]:
+        - generic [ref=e1215]: 
+        - text: 剪切板
+    - generic [ref=e1219] [cursor=pointer]:
+      - generic [ref=e1220]: 
+      - text: 共享桌面
+    - generic [ref=e1224] [cursor=pointer]:
+      - generic [ref=e1225]: 
+      - text: 下载代码
+    - generic [ref=e1229] [cursor=pointer]:
+      - generic [ref=e1230]: 
+      - text: 上传文件
+    - generic [ref=e1233] [cursor=pointer]:
+      - generic [ref=e1234]: 
+      - text: 桌面全屏
+    - generic [ref=e1238] [cursor=pointer]:
+      - generic [ref=e1239]: 
+      - text: 环境信息
+    - generic [ref=e1244] [cursor=pointer]:
+      - img [ref=e1245]
+      - text: SSH直连
+    - generic [ref=e1249] [cursor=pointer]:
+      - img [ref=e1250]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1251] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1255] [cursor=pointer]:
+      - generic [ref=e1256]: 
+      - text: 新手指南

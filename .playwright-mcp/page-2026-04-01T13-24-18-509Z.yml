@@ -1,0 +1,111 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 任务计划 crontab
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e931]:
+        - generic [ref=e932]:
+          - generic [ref=e933]:
+            - generic [ref=e934] [cursor=pointer]: 
+            - generic [ref=e935]: 一、实验介绍
+            - generic [ref=e936] [cursor=pointer]: 
+          - generic [ref=e938]:
+            - heading "1.1 实验内容" [level=4] [ref=e939]
+            - paragraph [ref=e940]:
+              - text: 我们时常会有一些定期定时的任务，如周期性的清理一下
+              - code [ref=e941]: /tmp
+              - text: ，周期性的去备份一次数据库，周期性的分析日志等等。而且有时候因为某些因素的限制，执行该任务的时间会很尴尬。本课程将带你很好的利用 Linux 系统的计划工具。
+            - heading "1.2 实验知识点" [level=4] [ref=e942]
+            - list [ref=e943]:
+              - listitem [ref=e944]: crontab 语法
+            - heading "1.3 参考资料" [level=4] [ref=e945]
+            - paragraph [ref=e946]: 本节部分内容参考以下文档制作：
+            - list [ref=e947]:
+              - listitem [ref=e948]:
+                - link "例行性工作排程(crontab) - 鸟哥私房菜" [ref=e949] [cursor=pointer]:
+                  - /url: http://cn.linux.vbird.org/linux_basic/0430cron.php
+              - listitem [ref=e950]:
+                - link "Linux Crontab 百度百科" [ref=e951] [cursor=pointer]:
+                  - /url: http://baike.baidu.com/link?url=h_n27RWno87VR4N0xoTGQfcnhoWXH_5JtLNEjuTqisXIasgLiUbWWjJwIkc3vnEIJrCrlZ1oQ4q3xrTz8VRtd_
+        - generic [ref=e952]:
+          - generic [ref=e953]:
+            - progressbar
+          - link "" [ref=e954] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e955]: 
+          - button "下一步" [ref=e957] [cursor=pointer]
+  - generic [ref=e574]:
+    - generic [ref=e958]:
+      - generic [ref=e959] [cursor=pointer]: 
+      - text: 检测到当前环境与该章节环境可兼容，已为您沿用当前环境；您可关闭当前环境后再打开新的环境
+    - generic [ref=e721]:
+      - iframe [ref=e794]:
+        - textbox "Terminal input" [ref=f2e63]
+      - textbox [ref=e725]: info ls
+  - generic [ref=e960]:
+    - generic [ref=e962] [cursor=pointer]: 
+    - generic [ref=e963]:
+      - generic [ref=e964]: 59:58
+      - button "延时" [ref=e965] [cursor=pointer]
+    - generic [ref=e966]:
+      - generic [ref=e967]:
+        - generic [ref=e968] [cursor=pointer]:
+          - generic [ref=e969]: 
+          - generic [ref=e970]: 桌面
+        - generic [ref=e971] [cursor=pointer]:
+          - generic [ref=e972]: 
+          - generic [ref=e973]: 字符
+      - generic [ref=e974] [cursor=pointer]:
+        - generic [ref=e975]: 
+        - text: 切换界面
+    - generic [ref=e977]:
+      - button " 关闭环境" [ref=e978] [cursor=pointer]:
+        - generic [ref=e979]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e981] [cursor=pointer]:
+      - generic [ref=e983]:
+        - generic [ref=e984]: 
+        - text: 剪切板
+    - generic [ref=e988] [cursor=pointer]:
+      - generic [ref=e989]: 
+      - text: 共享桌面
+    - generic [ref=e993] [cursor=pointer]:
+      - generic [ref=e994]: 
+      - text: 下载代码
+    - generic [ref=e998] [cursor=pointer]:
+      - generic [ref=e999]: 
+      - text: 上传文件
+    - generic [ref=e1002] [cursor=pointer]:
+      - generic [ref=e1003]: 
+      - text: 桌面全屏
+    - generic [ref=e1007] [cursor=pointer]:
+      - generic [ref=e1008]: 
+      - text: 环境信息
+    - generic [ref=e1013] [cursor=pointer]:
+      - img [ref=e1014]
+      - text: SSH直连
+    - generic [ref=e1018] [cursor=pointer]:
+      - img [ref=e1019]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1020] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1024] [cursor=pointer]:
+      - generic [ref=e1025]: 
+      - text: 新手指南

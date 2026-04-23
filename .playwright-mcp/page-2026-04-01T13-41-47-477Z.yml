@@ -1,0 +1,144 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: 命令执行顺序控制与管道
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e1165]:
+        - generic [ref=e1166]:
+          - generic [ref=e1167]:
+            - generic [ref=e1168] [cursor=pointer]: 
+            - generic [ref=e1169]: 3.6 uniq 去重命令
+            - generic [ref=e1170] [cursor=pointer]: 
+          - generic [ref=e1172]:
+            - paragraph [ref=e1438]:
+              - code [ref=e1439]: uniq
+              - text: 命令可以用于过滤或者输出重复行。
+            - list [ref=e1440]:
+              - listitem [ref=e1441]: 过滤重复行
+            - paragraph [ref=e1442]:
+              - text: 我们可以使用
+              - code [ref=e1443]: history
+              - text: 命令查看最近执行过的命令（实际为读取
+              - code [ref=e1444]: "${SHELL}_history"
+              - text: 文件，如我们环境中的
+              - code [ref=e1445]: .zsh_history
+              - text: 文件），不过你可能只想查看使用了哪个命令而不需要知道具体干了什么，那么你可能就会要想去掉命令后面的参数然后去掉重复的命令：
+            - generic [ref=e1446]:
+              - code [ref=e1447]: history | cut -c 8- | cut -d ' ' -f 1 | uniq
+              - img "copy" [ref=e1449] [cursor=pointer]
+            - paragraph [ref=e1450]:
+              - text: 然后经过层层过滤，你会发现确是只输出了执行的命令那一列，不过去重效果好像不明显，仔细看你会发现它确实去重了，只是不那么明显，之所以不明显是因为
+              - code [ref=e1451]: uniq
+              - text: 命令只能去连续重复的行，不是全文去重，所以要达到预期效果，我们先排序：
+            - generic [ref=e1452]:
+              - code [ref=e1453]: "history | cut -c 8- | cut -d ' ' -f 1 | sort | uniq # 或者 history | cut -c 8- | cut -d ' ' -f 1 | sort -u"
+              - img "copy" [ref=e1455] [cursor=pointer]
+            - paragraph [ref=e1456]: 这就是 Linux/UNIX 哲学吸引人的地方，大繁至简，一个命令只干一件事却能干到最好。
+            - list [ref=e1457]:
+              - listitem [ref=e1458]: 输出重复行
+            - generic [ref=e1459]:
+              - code [ref=e1460]: "# 输出重复过的行（重复的只输出一个）及重复次数 history | cut -c 8- | cut -d ' ' -f 1 | sort | uniq -dc # 输出所有重复的行 history | cut -c 8- | cut -d ' ' -f 1 | sort | uniq -D"
+              - img "copy" [ref=e1462] [cursor=pointer]
+            - paragraph [ref=e1463]: 文本处理命令还有很多，下一节将继续介绍一些常用的文本处理的命令。
+            - heading "轻松一下" [level=4] [ref=e1464]
+            - paragraph [ref=e1465]:
+              - text: 使用以前介绍过的方法，安装
+              - code [ref=e1466]: aview
+              - text: 和
+              - code [ref=e1467]: imagemagick
+              - text: ，然后用
+              - code [ref=e1468]: asciiview
+              - text: 命令显示图片，使用方法可以用 man 命令查看。
+            - paragraph [ref=e1469]:
+              - text: Linus 大神的照片地址
+              - link "https://labfile.oss.aliyuncs.com/courses/1/Linus.png" [ref=e1470] [cursor=pointer]:
+                - /url: https://labfile.oss.aliyuncs.com/courses/1/Linus.png
+            - paragraph [ref=e1471]:
+              - img "1" [ref=e1472]
+            - paragraph [ref=e1473]: 执行以下命令安装工具包并下载图片：
+            - generic [ref=e1474]:
+              - code [ref=e1475]: sudo apt update sudo apt install -y aview imagemagick wget https://labfile.oss-internal.aliyuncs.com/courses/1/Linus.png
+              - img "copy" [ref=e1477] [cursor=pointer]
+            - paragraph [ref=e1478]:
+              - text: 执行
+              - code [ref=e1479]: asciiview [图片文件名]
+              - text: 即可打开图片：
+            - paragraph [ref=e1480]:
+              - img "图片描述" [ref=e1481]
+        - generic [ref=e1183]:
+          - progressbar [ref=e1258]
+          - link "" [ref=e1185] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e1186]: 
+          - button "下一步" [active] [ref=e1188] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [ref=e794]:
+      - textbox "Terminal input" [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e1191]:
+    - generic [ref=e1193] [cursor=pointer]: 
+    - generic [ref=e1194]:
+      - generic [ref=e1195]: 49:34
+      - button "延时" [ref=e1196] [cursor=pointer]
+    - generic [ref=e1197]:
+      - generic [ref=e1198]:
+        - generic [ref=e1199] [cursor=pointer]:
+          - generic [ref=e1200]: 
+          - generic [ref=e1201]: 桌面
+        - generic [ref=e1202] [cursor=pointer]:
+          - generic [ref=e1203]: 
+          - generic [ref=e1204]: 字符
+      - generic [ref=e1205] [cursor=pointer]:
+        - generic [ref=e1206]: 
+        - text: 切换界面
+    - generic [ref=e1208]:
+      - button " 关闭环境" [ref=e1209] [cursor=pointer]:
+        - generic [ref=e1210]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e1212] [cursor=pointer]:
+      - generic [ref=e1214]:
+        - generic [ref=e1215]: 
+        - text: 剪切板
+    - generic [ref=e1219] [cursor=pointer]:
+      - generic [ref=e1220]: 
+      - text: 共享桌面
+    - generic [ref=e1224] [cursor=pointer]:
+      - generic [ref=e1225]: 
+      - text: 下载代码
+    - generic [ref=e1229] [cursor=pointer]:
+      - generic [ref=e1230]: 
+      - text: 上传文件
+    - generic [ref=e1233] [cursor=pointer]:
+      - generic [ref=e1234]: 
+      - text: 桌面全屏
+    - generic [ref=e1238] [cursor=pointer]:
+      - generic [ref=e1239]: 
+      - text: 环境信息
+    - generic [ref=e1244] [cursor=pointer]:
+      - img [ref=e1245]
+      - text: SSH直连
+    - generic [ref=e1249] [cursor=pointer]:
+      - img [ref=e1250]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1251] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1255] [cursor=pointer]:
+      - generic [ref=e1256]: 
+      - text: 新手指南

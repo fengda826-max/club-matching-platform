@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Club {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  category    String
+  description String
+  requirements String
+  memberCount Int
+  contact     String
+  tags        String   // Comma-separated tags
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

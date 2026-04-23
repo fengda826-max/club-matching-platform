@@ -1,0 +1,62 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e6]:
+    - generic [ref=e10]:
+      - generic [ref=e12]:
+        - link [ref=e13] [cursor=pointer]:
+          - /url: /courses/1
+          - img [ref=e14]
+        - generic [ref=e15]: 数据流重定向
+      - generic [ref=e16]:
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e23] [cursor=pointer]: 章节
+            - generic [ref=e27] [cursor=pointer]: 步骤
+            - generic [ref=e31] [cursor=pointer]: 报告
+            - generic [ref=e35] [cursor=pointer]: 讨论
+            - generic [ref=e39] [cursor=pointer]: 学习助手
+          - generic [ref=e40]:
+            - link "常见问题" [ref=e42] [cursor=pointer]:
+              - /url: /questions/topics/28/
+              - generic "常见问题" [ref=e43]
+            - generic "纠错" [ref=e45] [cursor=pointer]
+            - generic "楼层" [ref=e47] [cursor=pointer]
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53] [cursor=pointer]: 
+              - generic [ref=e54]: 二、数据流重定向
+              - generic [ref=e55] [cursor=pointer]: 
+            - generic [ref=e57]:
+              - paragraph [ref=e86]: 下面我们简单的回顾一下我们前面经常用到的两个重定向操作：
+              - generic [ref=e87]:
+                - code [ref=e88]: echo 'hello shiyanlou' > redirect echo 'www.shiyanlou.com' >> redirect cat redirect
+                - img "copy" [ref=e90] [cursor=pointer]
+              - blockquote [ref=e91]:
+                - paragraph [ref=e92]:
+                  - text: 当然前面没有用到的
+                  - code [ref=e93]: <
+                  - text: 和
+                  - code [ref=e94]: <<
+                  - text: 操作也是没有问题的，如你理解的一样，它们的区别在于重定向的方向不一致而已，
+                  - code [ref=e95]: ">"
+                  - text: 表示是从左到右，
+                  - code [ref=e96]: <
+                  - text: 右到左。
+          - generic [ref=e67]:
+            - progressbar [ref=e97]
+            - link "" [ref=e69] [cursor=pointer]:
+              - /url: javascript:;
+              - generic [ref=e70]: 
+            - button "下一步" [ref=e72] [cursor=pointer]
+    - generic [ref=e76]:
+      - generic [ref=e77]: 点击下方环境窗口，开启实战
+      - generic [ref=e83] [cursor=pointer]:
+        - generic [ref=e84]: 默认环境
+        - img [ref=e85]
+  - dialog [ref=e98]:
+    - generic [ref=e101]:
+      - img "close" [ref=e102] [cursor=pointer]: 
+      - paragraph [ref=e103]: 当前章节环境与已开启的环境兼容，环境数据可继续使用
+      - generic [ref=e104]:
+        - button "确定沿用" [ref=e105] [cursor=pointer]
+        - button "不沿用" [ref=e106] [cursor=pointer]

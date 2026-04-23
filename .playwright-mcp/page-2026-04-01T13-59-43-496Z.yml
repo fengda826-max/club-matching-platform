@@ -1,0 +1,134 @@
+- generic [ref=e6]:
+  - generic [ref=e8]:
+    - generic [ref=e10]:
+      - link [ref=e11] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e12]
+      - generic [ref=e13]: Linux 基础入门
+    - generic [ref=e14]:
+      - generic [ref=e16]:
+        - generic [ref=e21] [cursor=pointer]: 章节
+        - generic [ref=e22]:
+          - link "常见问题" [ref=e24] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e25]
+          - generic "纠错" [ref=e27] [cursor=pointer]
+          - generic "楼层" [ref=e29] [cursor=pointer]
+      - generic [ref=e32]:
+        - link "Linux 基础入门 Linux 基础入门 前往课程主页 >" [ref=e34] [cursor=pointer]:
+          - /url: /courses/1
+          - generic [ref=e35]:
+            - img "Linux 基础入门" [ref=e37]
+            - generic [ref=e38]:
+              - generic [ref=e39]: Linux 基础入门
+              - generic [ref=e40]: 前往课程主页 >
+        - generic [ref=e42]:
+          - paragraph [ref=e43]: 目前已学习 2/21 个章节
+          - progressbar [ref=e45]
+        - generic [ref=e62]:
+          - generic [ref=e64] [cursor=pointer]:
+            - generic [ref=e66]:
+              - generic [ref=e68]: 实验 1
+              - generic "Linux 系统简介" [ref=e69]
+            - img "未学习" [ref=e71]
+          - generic [ref=e73] [cursor=pointer]:
+            - generic [ref=e75]:
+              - generic [ref=e77]: 实验 2
+              - generic "基本概念及操作" [ref=e78]
+            - img "未学习" [ref=e80]
+          - generic [ref=e82] [cursor=pointer]:
+            - generic [ref=e84]:
+              - generic [ref=e86]: 实验 3
+              - generic "用户及文件权限管理" [ref=e87]
+            - img "未学习" [ref=e89]
+          - generic [ref=e91] [cursor=pointer]:
+            - generic [ref=e93]:
+              - generic [ref=e95]: 实验 4
+              - generic "Linux 目录结构及文件基本操作" [ref=e96]
+            - img "未学习" [ref=e98]
+          - generic [ref=e100] [cursor=pointer]:
+            - generic [ref=e102]:
+              - generic [ref=e104]: 实验 5
+              - generic "环境变量与文件查找" [ref=e105]
+            - img "未学习" [ref=e107]
+          - generic [ref=e109] [cursor=pointer]:
+            - generic [ref=e111]:
+              - generic [ref=e113]: 挑战 1
+              - generic "寻找文件" [ref=e114]
+            - img "未学习" [ref=e116]
+          - generic [ref=e118] [cursor=pointer]:
+            - generic [ref=e120]:
+              - generic [ref=e122]: 实验 6
+              - generic "文件打包与解压缩" [ref=e123]
+            - img "未学习" [ref=e125]
+          - generic [ref=e127] [cursor=pointer]:
+            - generic [ref=e129]:
+              - generic [ref=e131]: 实验 7
+              - generic "文件系统操作与磁盘管理" [ref=e132]
+            - img "未学习" [ref=e134]
+          - generic [ref=e136] [cursor=pointer]:
+            - generic [ref=e138]:
+              - generic [ref=e140]: 实验 8
+              - generic "Linux 下的帮助命令" [ref=e141]
+            - img "未学习" [ref=e143]
+          - generic [ref=e145] [cursor=pointer]:
+            - generic [ref=e147]:
+              - generic [ref=e149]: 实验 9
+              - generic "Linux 任务计划 crontab" [ref=e150]
+            - img "未学习" [ref=e152]
+          - generic [ref=e154] [cursor=pointer]:
+            - generic [ref=e156]:
+              - generic [ref=e158]: 挑战 2
+              - generic "备份日志" [ref=e159]
+            - img "未学习" [ref=e161]
+          - generic [ref=e163] [cursor=pointer]:
+            - generic [ref=e165]:
+              - generic [ref=e167]: 实验 10
+              - generic "命令执行顺序控制与管道" [ref=e168]
+            - img "未学习" [ref=e170]
+          - generic [ref=e172] [cursor=pointer]:
+            - generic [ref=e174]:
+              - generic [ref=e176]: 实验 11
+              - generic "简单的文本处理" [ref=e177]
+            - img "未学习" [ref=e179]
+          - generic [ref=e181] [cursor=pointer]:
+            - generic [ref=e183]:
+              - generic [ref=e185]: 实验 12
+              - generic "数据流重定向" [ref=e186]
+            - img "未学习" [ref=e188]
+          - generic [ref=e190] [cursor=pointer]:
+            - generic [ref=e192]:
+              - generic [ref=e194]: 挑战 3
+              - generic "历史命令" [ref=e195]
+            - img "未学习" [ref=e197]
+          - generic [ref=e199] [cursor=pointer]:
+            - generic [ref=e201]:
+              - generic [ref=e203]: 实验 13
+              - generic "正则表达式基础" [ref=e204]
+            - img "未学习" [ref=e206]
+          - generic [ref=e208] [cursor=pointer]:
+            - generic [ref=e210]:
+              - generic [ref=e212]: 挑战 4
+              - generic "数据提取" [ref=e213]
+            - img "未学习" [ref=e215]
+          - generic [ref=e217] [cursor=pointer]:
+            - generic [ref=e219]:
+              - generic [ref=e221]: 实验 14
+              - generic "Linux 下软件安装" [ref=e222]
+            - img "未学习" [ref=e224]
+          - generic [ref=e226] [cursor=pointer]:
+            - generic [ref=e228]:
+              - generic [ref=e230]: 实验 15
+              - generic "Linux 进程概念" [ref=e231]
+            - img "未学习" [ref=e233]
+          - generic [ref=e235] [cursor=pointer]:
+            - generic [ref=e237]:
+              - generic [ref=e239]: 实验 16
+              - generic "Linux 进程管理" [ref=e240]
+            - img "未学习" [ref=e242]
+          - generic [ref=e244] [cursor=pointer]:
+            - generic [ref=e246]:
+              - generic [ref=e248]: 实验 17
+              - generic "Linux 日志系统" [ref=e249]
+            - img "未学习" [ref=e251]
+  - generic [ref=e53]: 加载中，请稍候...

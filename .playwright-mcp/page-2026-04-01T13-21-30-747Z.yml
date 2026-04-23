@@ -1,0 +1,97 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 下的帮助命令
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e676]:
+        - generic [ref=e677]:
+          - generic [ref=e678]:
+            - generic [ref=e679] [cursor=pointer]: 
+            - generic [ref=e680]: 3. info 命令
+            - generic [ref=e681] [cursor=pointer]: 
+          - generic [ref=e683]:
+            - paragraph [ref=e920]: 要是你觉得 man 显示的信息都还不够，满足不了你的需求，那试试 info 命令，注意实验楼的环境中没有安装 info，可以手动安装，安装和操作步骤如下：
+            - generic [ref=e921]:
+              - code [ref=e922]: "# 安装 info sudo apt-get update sudo apt-get install info # 查看 ls 命令的 info info ls"
+              - img "copy" [ref=e924] [cursor=pointer]
+            - paragraph [ref=e925]:
+              - img "Info_for_ls" [ref=e926]
+            - paragraph [ref=e927]: 得到的信息是不是比 man 还要多了，info 来自自由软件基金会的 GNU 项目，是 GNU 的超文本帮助系统，能够更完整的显示出 GNU 信息。所以得到的信息当然更多
+            - paragraph [ref=e928]: man 和 info 就像两个集合，它们有一个交集部分，但与 man 相比，info 工具可显示更完整的 GNU 工具信息。若 man 页包含的某个工具的概要信息在 info 中也有介绍，那么 man 页中会有“请参考 info 页更详细内容”的字样。
+        - generic [ref=e690]:
+          - progressbar [ref=e792]
+          - link "" [ref=e692] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e693]: 
+          - button "下一步" [ref=e695] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [ref=e794]:
+      - textbox "Terminal input" [ref=f2e63]
+    - textbox [active] [ref=e725]: sudo apt-get update
+  - generic [ref=e726]:
+    - generic [ref=e728] [cursor=pointer]: 
+    - generic [ref=e729]:
+      - generic [ref=e730]: 35:55
+      - button "延时" [ref=e731] [cursor=pointer]
+    - generic [ref=e732]:
+      - generic [ref=e733]:
+        - generic [ref=e734] [cursor=pointer]:
+          - generic [ref=e735]: 
+          - generic [ref=e736]: 桌面
+        - generic [ref=e737] [cursor=pointer]:
+          - generic [ref=e738]: 
+          - generic [ref=e739]: 字符
+      - generic [ref=e740] [cursor=pointer]:
+        - generic [ref=e741]: 
+        - text: 切换界面
+    - generic [ref=e743]:
+      - button " 关闭环境" [ref=e744] [cursor=pointer]:
+        - generic [ref=e745]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e747] [cursor=pointer]:
+      - generic [ref=e749]:
+        - generic [ref=e750]: 
+        - text: 剪切板
+    - generic [ref=e754] [cursor=pointer]:
+      - generic [ref=e755]: 
+      - text: 共享桌面
+    - generic [ref=e759] [cursor=pointer]:
+      - generic [ref=e760]: 
+      - text: 下载代码
+    - generic [ref=e764] [cursor=pointer]:
+      - generic [ref=e765]: 
+      - text: 上传文件
+    - generic [ref=e768] [cursor=pointer]:
+      - generic [ref=e769]: 
+      - text: 桌面全屏
+    - generic [ref=e773] [cursor=pointer]:
+      - generic [ref=e774]: 
+      - text: 环境信息
+    - generic [ref=e779] [cursor=pointer]:
+      - img [ref=e780]
+      - text: SSH直连
+    - generic [ref=e784] [cursor=pointer]:
+      - img [ref=e785]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e786] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e790] [cursor=pointer]:
+      - generic [ref=e791]: 
+      - text: 新手指南

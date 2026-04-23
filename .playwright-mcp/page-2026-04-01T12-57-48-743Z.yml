@@ -1,0 +1,107 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 下的帮助命令
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e676]:
+        - generic [ref=e677]:
+          - generic [ref=e678]:
+            - generic [ref=e679] [cursor=pointer]: 
+            - generic [ref=e680]: 二、内建命令与外部命令
+            - generic [ref=e681] [cursor=pointer]: 
+          - generic [ref=e683]:
+            - paragraph [ref=e701]: 什么是内建命令，什么是外部命令呢？这和帮助命令又有什么关系呢？
+            - paragraph [ref=e702]: 因为有一些查看帮助的工具在内建命令与外建命令上是有区别对待的。
+            - blockquote [ref=e703]:
+              - paragraph [ref=e704]:
+                - strong [ref=e705]: 内建命令
+                - text: 实际上是 shell 程序的一部分，其中包含的是一些比较简单的 Linux 系统命令，这些命令是写在 bash 源码的 builtins 里面的，由 shell 程序识别并在 shell 程序内部完成运行，通常在 Linux 系统加载运行时 shell 就被加载并驻留在系统内存中。而且解析内部命令 shell 不需要创建子进程，因此其执行速度比外部命令快。比如：history、cd、exit 等等。
+            - blockquote [ref=e706]:
+              - paragraph [ref=e707]:
+                - strong [ref=e708]: 外部命令
+                - text: 是 Linux 系统中的实用程序部分，因为实用程序的功能通常都比较强大，所以其包含的程序量也会很大，在系统加载时并不随系统一起被加载到内存中，而是在需要时才将其调入内存。虽然其不包含在 shell 中，但是其命令执行过程是由 shell 程序控制的。外部命令是在 Bash 之外额外安装的，通常放在/bin，/usr/bin，/sbin，/usr/sbin 等等。比如：ls、vi 等。
+            - paragraph [ref=e709]: 简单来说就是：一个是天生自带的天赋技能，一个是后天得来的附加技能。我们可以使用 type 命令来区分命令是内建的还是外部的。例如这两个得出的结果是不同的
+            - generic [ref=e710]:
+              - code [ref=e711]: type exit type vim
+              - img "copy" [ref=e713] [cursor=pointer]
+            - paragraph [ref=e714]: 得到的是两种结果，若是对 ls 你还能得到第三种结果
+            - paragraph [ref=e715]:
+              - img "此处输入图片的描述" [ref=e716]
+            - generic [ref=e717]:
+              - code [ref=e718]: "# 得到这样的结果说明是内建命令，正如上文所说内建命令都是在 bash 源码中的 builtins 的.def中 xxx is a shell builtin # 得到这样的结果说明是外部命令，正如上文所说，外部命令在/usr/bin or /usr/sbin等等中 xxx is /usr/bin/xxx # 若是得到alias的结果，说明该指令为命令别名所设定的名称； xxx is an alias for xx --xxx"
+              - img "copy" [ref=e720] [cursor=pointer]
+        - generic [ref=e690]:
+          - generic [ref=e691]:
+            - progressbar
+          - link "" [ref=e692] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e693]: 
+          - button "下一步" [active] [ref=e695] [cursor=pointer]
+  - textbox [ref=e725]: ___________________________________________________________________________________________________
+  - generic [ref=e726]:
+    - generic [ref=e728] [cursor=pointer]: 
+    - generic [ref=e729]:
+      - generic [ref=e730]: 59:40
+      - button "延时" [ref=e731] [cursor=pointer]
+    - generic [ref=e732]:
+      - generic [ref=e733]:
+        - generic [ref=e734] [cursor=pointer]:
+          - generic [ref=e735]: 
+          - generic [ref=e736]: 桌面
+        - generic [ref=e737] [cursor=pointer]:
+          - generic [ref=e738]: 
+          - generic [ref=e739]: 字符
+      - generic [ref=e740] [cursor=pointer]:
+        - generic [ref=e741]: 
+        - text: 切换界面
+    - generic [ref=e743]:
+      - button " 关闭环境" [ref=e744] [cursor=pointer]:
+        - generic [ref=e745]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e747] [cursor=pointer]:
+      - generic [ref=e749]:
+        - generic [ref=e750]: 
+        - text: 剪切板
+    - generic [ref=e754] [cursor=pointer]:
+      - generic [ref=e755]: 
+      - text: 共享桌面
+    - generic [ref=e759] [cursor=pointer]:
+      - generic [ref=e760]: 
+      - text: 下载代码
+    - generic [ref=e764] [cursor=pointer]:
+      - generic [ref=e765]: 
+      - text: 上传文件
+    - generic [ref=e768] [cursor=pointer]:
+      - generic [ref=e769]: 
+      - text: 桌面全屏
+    - generic [ref=e773] [cursor=pointer]:
+      - generic [ref=e774]: 
+      - text: 环境信息
+    - generic [ref=e779] [cursor=pointer]:
+      - img [ref=e780]
+      - text: SSH直连
+    - generic [ref=e784] [cursor=pointer]:
+      - img [ref=e785]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e786] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e790] [cursor=pointer]:
+      - generic [ref=e791]: 
+      - text: 新手指南

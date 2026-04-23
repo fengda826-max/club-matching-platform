@@ -1,0 +1,121 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: 简单的文本处理
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e1487]:
+        - generic [ref=e1488]:
+          - generic [ref=e1489]:
+            - generic [ref=e1490] [cursor=pointer]: 
+            - generic [ref=e1491]: 2.1 tr 命令
+            - generic [ref=e1492] [cursor=pointer]: 
+          - generic [ref=e1494]:
+            - paragraph [ref=e1581]: tr 命令可以用来删除一段文本信息中的某些文字。或者将其进行转换。
+            - heading "使用方式" [level=4] [ref=e1582]
+            - generic [ref=e1583]:
+              - code [ref=e1584]: tr [option]...SET1 [SET2]
+              - img "copy" [ref=e1586] [cursor=pointer]
+            - heading "常用的选项有" [level=4] [ref=e1587]
+            - table [ref=e1588]:
+              - rowgroup [ref=e1589]:
+                - row "选项 说明" [ref=e1590]:
+                  - columnheader "选项" [ref=e1591]
+                  - columnheader "说明" [ref=e1592]
+              - rowgroup [ref=e1593]:
+                - row "-d 删除和 set1 匹配的字符，注意不是全词匹配也不是按字符顺序匹配" [ref=e1594]:
+                  - cell "-d" [ref=e1595]:
+                    - code [ref=e1596]: "-d"
+                  - cell "删除和 set1 匹配的字符，注意不是全词匹配也不是按字符顺序匹配" [ref=e1597]
+                - row "-s 去除 set1 指定的在输入文本中连续并重复的字符" [ref=e1598]:
+                  - cell "-s" [ref=e1599]:
+                    - code [ref=e1600]: "-s"
+                  - cell "去除 set1 指定的在输入文本中连续并重复的字符" [ref=e1601]
+            - heading "操作举例" [level=4] [ref=e1602]
+            - generic [ref=e1603]:
+              - code [ref=e1604]: "# 删除 \"hello shiyanlou\" 中所有的'o'，'l'，'h' $ echo 'hello shiyanlou' | tr -d 'olh' # 将\"hello\" 中的ll，去重为一个l $ echo 'hello' | tr -s 'l' # 将输入文本，全部转换为大写或小写输出 $ echo 'input some text here' | tr '[:lower:]' '[:upper:]' # 上面的'[:lower:]' '[:upper:]'你也可以简单的写作'[a-z]' '[A-Z]'，当然反过来将大写变小写也是可以的"
+              - img "copy" [ref=e1606] [cursor=pointer]
+            - paragraph [ref=e1607]:
+              - img "此处输入图片的描述" [ref=e1608]
+            - paragraph [ref=e1609]:
+              - text: 更多 tr 的使用，你可以使用
+              - code [ref=e1610]: "--help"
+              - text: 或者
+              - code [ref=e1611]: man tr
+              - text: 获得。
+        - generic [ref=e1505]:
+          - progressbar [ref=e1580]
+          - link "" [ref=e1507] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e1508]: 
+          - button "下一步" [active] [ref=e1510] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [ref=e794]:
+      - textbox "Terminal input" [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e1513]:
+    - generic [ref=e1515] [cursor=pointer]: 
+    - generic [ref=e1516]:
+      - generic [ref=e1517]: 58:35
+      - button "延时" [ref=e1518] [cursor=pointer]
+    - generic [ref=e1519]:
+      - generic [ref=e1520]:
+        - generic [ref=e1521] [cursor=pointer]:
+          - generic [ref=e1522]: 
+          - generic [ref=e1523]: 桌面
+        - generic [ref=e1524] [cursor=pointer]:
+          - generic [ref=e1525]: 
+          - generic [ref=e1526]: 字符
+      - generic [ref=e1527] [cursor=pointer]:
+        - generic [ref=e1528]: 
+        - text: 切换界面
+    - generic [ref=e1530]:
+      - button " 关闭环境" [ref=e1531] [cursor=pointer]:
+        - generic [ref=e1532]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e1534] [cursor=pointer]:
+      - generic [ref=e1536]:
+        - generic [ref=e1537]: 
+        - text: 剪切板
+    - generic [ref=e1541] [cursor=pointer]:
+      - generic [ref=e1542]: 
+      - text: 共享桌面
+    - generic [ref=e1546] [cursor=pointer]:
+      - generic [ref=e1547]: 
+      - text: 下载代码
+    - generic [ref=e1551] [cursor=pointer]:
+      - generic [ref=e1552]: 
+      - text: 上传文件
+    - generic [ref=e1555] [cursor=pointer]:
+      - generic [ref=e1556]: 
+      - text: 桌面全屏
+    - generic [ref=e1560] [cursor=pointer]:
+      - generic [ref=e1561]: 
+      - text: 环境信息
+    - generic [ref=e1566] [cursor=pointer]:
+      - img [ref=e1567]
+      - text: SSH直连
+    - generic [ref=e1571] [cursor=pointer]:
+      - img [ref=e1572]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1573] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1577] [cursor=pointer]:
+      - generic [ref=e1578]: 
+      - text: 新手指南

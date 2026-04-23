@@ -1,0 +1,149 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 任务计划 crontab
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e931]:
+        - generic [ref=e932]:
+          - generic [ref=e933]:
+            - generic [ref=e934] [cursor=pointer]: 
+            - generic [ref=e935]: 2.3 crontab 使用
+            - generic [ref=e936] [cursor=pointer]: 
+          - generic [ref=e938]:
+            - paragraph [ref=e1064]: 下面将开始 crontab 的使用了，我们通过下面一个命令来添加一个计划任务：
+            - generic [ref=e1065]:
+              - code [ref=e1066]: crontab -e
+              - img "copy" [ref=e1068] [cursor=pointer]
+            - paragraph [ref=e1069]: 第一次启动会出现这样一个画面，这是让我们选择编辑的工具，选择第二个基本的 vim 就可以了。
+            - paragraph [ref=e1070]:
+              - img "此处输入图片的描述" [ref=e1071]
+            - paragraph [ref=e1072]: 而选择后我们会进入这样一个画面，这就是添加计划的地方了，与一般的配置文档相同，以#号开头的都是注释，通过文档的最后一排我们可以猜猜 crontab 的格式是什么样的呢？
+            - paragraph [ref=e1073]:
+              - img "实验楼" [ref=e1074]
+            - paragraph [ref=e1075]: 详细的格式可以使用上一节中学习到的 man 命令查看：
+            - generic [ref=e1076]:
+              - code [ref=e1077]: man crontab
+              - img "copy" [ref=e1079] [cursor=pointer]
+            - paragraph [ref=e1080]: 在了解命令格式之后，我们通过这样的一个例子来完成一个任务的添加，在文档的最后一排加上这样一排命令，该任务是每分钟我们会在/home/shiyanlou 目录下创建一个以当前的年月日时分秒为名字的空白文件
+            - generic [ref=e1081]:
+              - code [ref=e1082]: "*/1 * * * * touch /home/shiyanlou/$(date +\\%Y\\%m\\%d\\%H\\%M\\%S)"
+              - img "copy" [ref=e1084] [cursor=pointer]
+            - paragraph [ref=e1085]:
+              - strong [ref=e1086]: 注意：
+            - blockquote [ref=e1087]:
+              - paragraph [ref=e1088]: “ % ” 在 crontab 文件中，有结束命令行、换行、重定向的作用，前面加 ” \ ” 符号转义，否则，“ % ” 符号将执行其结束命令行或者换行的作用，并且其后的内容会被做为标准输入发送给前面的命令。
+            - paragraph [ref=e1089]: 添加成功后我们会得到最后一排 installing new crontab 的一个提示：
+            - paragraph [ref=e1090]:
+              - img "实验楼" [ref=e1091]
+            - paragraph [ref=e1092]: 当然我们也可以通过这样的一个指令来查看我们添加了哪些任务：
+            - generic [ref=e1093]:
+              - code [ref=e1094]: crontab -l
+              - img "copy" [ref=e1096] [cursor=pointer]
+            - paragraph [ref=e1097]: 通过图中的显示，我们也可以看出，我们正确的保存并且添加成功了该任务的：
+            - paragraph [ref=e1098]:
+              - img "实验楼" [ref=e1099]
+            - paragraph [ref=e1100]:
+              - text: 虽然我们添加了任务，但是如果
+              - code [ref=e1101]: cron
+              - text: 的守护进程并没有启动，它根本都不会监测到有任务，当然也就不会帮我们执行，我们可以通过以下 2 种方式来确定我们的
+              - code [ref=e1102]: cron
+              - text: 是否成功的在后台启动，默默的帮我们做事，若是没有就得执行上文准备中的第二步了。
+            - generic [ref=e1103]:
+              - code [ref=e1104]: "ps aux | grep cron # or pgrep cron"
+              - img "copy" [ref=e1106] [cursor=pointer]
+            - paragraph [ref=e1107]:
+              - img "此处输入图片的描述" [ref=e1108]
+            - paragraph [ref=e1109]: 通过下图可以看到任务在创建之后，执行了几次，生成了一些文件，且每分钟生成一个：
+            - paragraph [ref=e1110]:
+              - img "此处输入图片的描述" [ref=e1111]
+            - paragraph [ref=e1112]: 我们通过这样一个命令可以查看到执行任务命令之后在日志中的信息反馈：
+            - generic [ref=e1113]:
+              - code [ref=e1114]: sudo tail -f /var/log/syslog
+              - img "copy" [ref=e1116] [cursor=pointer]
+            - paragraph [ref=e1117]: 从图中我们可以看到分别在 13 点 28、29、30 分的 01 秒为我们在 shiyanlou 用户的家目录下创建了文件。
+            - paragraph [ref=e1118]:
+              - img "此处输入图片的描述" [ref=e1119]
+            - paragraph [ref=e1120]: 当我们并不需要这个任务的时候我们可以使用这么一个命令去删除任务：
+            - generic [ref=e1121]:
+              - code [ref=e1122]: crontab -r
+              - img "copy" [ref=e1124] [cursor=pointer]
+            - paragraph [ref=e1125]: 通过图中我们可以看出我们删除之后再查看任务列表，系统已经显示该用户并没有任务哦。
+            - paragraph [ref=e1126]:
+              - img "此处输入图片的描述" [ref=e1127]
+        - generic [ref=e952]:
+          - progressbar [ref=e1027]
+          - link "" [ref=e954] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e955]: 
+          - button "下一步" [ref=e1128] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [active] [ref=e794]:
+      - textbox "Terminal input" [active] [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e960]:
+    - generic [ref=e962] [cursor=pointer]: 
+    - generic [ref=e963]:
+      - generic [ref=e964]: 55:30
+      - button "延时" [ref=e965] [cursor=pointer]
+    - generic [ref=e966]:
+      - generic [ref=e967]:
+        - generic [ref=e968] [cursor=pointer]:
+          - generic [ref=e969]: 
+          - generic [ref=e970]: 桌面
+        - generic [ref=e971] [cursor=pointer]:
+          - generic [ref=e972]: 
+          - generic [ref=e973]: 字符
+      - generic [ref=e974] [cursor=pointer]:
+        - generic [ref=e975]: 
+        - text: 切换界面
+    - generic [ref=e977]:
+      - button " 关闭环境" [ref=e978] [cursor=pointer]:
+        - generic [ref=e979]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e981] [cursor=pointer]:
+      - generic [ref=e983]:
+        - generic [ref=e984]: 
+        - text: 剪切板
+    - generic [ref=e988] [cursor=pointer]:
+      - generic [ref=e989]: 
+      - text: 共享桌面
+    - generic [ref=e993] [cursor=pointer]:
+      - generic [ref=e994]: 
+      - text: 下载代码
+    - generic [ref=e998] [cursor=pointer]:
+      - generic [ref=e999]: 
+      - text: 上传文件
+    - generic [ref=e1002] [cursor=pointer]:
+      - generic [ref=e1003]: 
+      - text: 桌面全屏
+    - generic [ref=e1007] [cursor=pointer]:
+      - generic [ref=e1008]: 
+      - text: 环境信息
+    - generic [ref=e1013] [cursor=pointer]:
+      - img [ref=e1014]
+      - text: SSH直连
+    - generic [ref=e1018] [cursor=pointer]:
+      - img [ref=e1019]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1020] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1024] [cursor=pointer]:
+      - generic [ref=e1025]: 
+      - text: 新手指南

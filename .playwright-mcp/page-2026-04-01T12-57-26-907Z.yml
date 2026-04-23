@@ -1,0 +1,47 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 下的帮助命令
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e676]:
+        - generic [ref=e677]:
+          - generic [ref=e678]:
+            - generic [ref=e679] [cursor=pointer]: 
+            - generic [ref=e680]: 一、实验介绍
+            - generic [ref=e681] [cursor=pointer]: 
+          - generic [ref=e683]:
+            - heading "1.1 实验内容" [level=4] [ref=e684]
+            - paragraph [ref=e685]: 我们时常使用 Linux 的命令，一些常用的命令即使不背我们也能记住，而一些较长的命令或是一些不常用的参数甚至是不常用的命令需要用时怎么也想不出来。本课程将带你好好利用 Linux 系统自带的帮助工具与文档。
+            - heading "1.2 实验知识点" [level=4] [ref=e686]
+            - list [ref=e687]:
+              - listitem [ref=e688]: 内建命令与外部命令之分
+              - listitem [ref=e689]: help，man，info 命令的使用以及区别
+        - generic [ref=e690]:
+          - generic [ref=e691]:
+            - progressbar
+          - link "" [ref=e692] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e693]: 
+          - button "下一步" [ref=e695] [cursor=pointer]
+  - generic [ref=e696]:
+    - generic [ref=e697]:
+      - img "加载中" [ref=e698]
+      - generic [ref=e699]: Loading...
+    - generic [ref=e700]:
+      - progressbar

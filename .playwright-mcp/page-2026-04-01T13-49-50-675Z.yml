@@ -1,0 +1,132 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: 简单的文本处理
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e1487]:
+        - generic [ref=e1488]:
+          - generic [ref=e1489]:
+            - generic [ref=e1490] [cursor=pointer]: 
+            - generic [ref=e1491]: 2.3 join 命令
+            - generic [ref=e1492] [cursor=pointer]: 
+          - generic [ref=e1494]:
+            - paragraph [ref=e1643]: 学过数据库的用户对这个应该不会陌生，这个命令就是用于将两个文件中包含相同内容的那一行合并在一起。
+            - heading "使用方式" [level=4] [ref=e1644]
+            - generic [ref=e1645]:
+              - code [ref=e1646]: join [option]... file1 file2
+              - img "copy" [ref=e1648] [cursor=pointer]
+            - heading "常用的选项有" [level=4] [ref=e1649]
+            - table [ref=e1650]:
+              - rowgroup [ref=e1651]:
+                - row "选项 说明" [ref=e1652]:
+                  - columnheader "选项" [ref=e1653]
+                  - columnheader "说明" [ref=e1654]
+              - rowgroup [ref=e1655]:
+                - row "-t 指定分隔符，默认为空格" [ref=e1656]:
+                  - cell "-t" [ref=e1657]:
+                    - code [ref=e1658]: "-t"
+                  - cell "指定分隔符，默认为空格" [ref=e1659]
+                - row "-i 忽略大小写的差异" [ref=e1660]:
+                  - cell "-i" [ref=e1661]:
+                    - code [ref=e1662]: "-i"
+                  - cell "忽略大小写的差异" [ref=e1663]
+                - row "-1 指明第一个文件要用哪个字段来对比，默认对比第一个字段" [ref=e1664]:
+                  - cell "-1" [ref=e1665]:
+                    - code [ref=e1666]: "-1"
+                  - cell "指明第一个文件要用哪个字段来对比，默认对比第一个字段" [ref=e1667]
+                - row "-2 指明第二个文件要用哪个字段来对比，默认对比第一个字段" [ref=e1668]:
+                  - cell "-2" [ref=e1669]:
+                    - code [ref=e1670]: "-2"
+                  - cell "指明第二个文件要用哪个字段来对比，默认对比第一个字段" [ref=e1671]
+            - heading "操作举例" [level=4] [ref=e1672]
+            - generic [ref=e1673]:
+              - code [ref=e1674]: "cd /home/shiyanlou # 创建两个文件 echo '1 hello' > file1 echo '1 shiyanlou' > file2 join file1 file2 # 将 /etc/passwd 与 /etc/shadow 两个文件合并，指定以':'作为分隔符 sudo join -t':' /etc/passwd /etc/shadow # 将 /etc/passwd 与 /etc/group 两个文件合并，指定以':'作为分隔符，分别比对第4和第3个字段 sudo join -t':' -1 4 /etc/passwd -2 3 /etc/group"
+              - img "copy" [ref=e1676] [cursor=pointer]
+            - paragraph [ref=e1677]:
+              - img "此处输入图片的描述" [ref=e1678]
+              - img "此处输入图片的描述" [ref=e1679]
+        - generic [ref=e1505]:
+          - progressbar [ref=e1580]
+          - generic [ref=e1680]:
+            - generic [ref=e1682] [cursor=pointer]: 
+            - generic [ref=e1683]:
+              - generic [ref=e1684]: 
+              - text: 检测未通过
+            - generic [ref=e1685]: /home/shiyanlou 目录下没有 file1 文件
+          - link "" [ref=e1507] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e1508]: 
+          - generic [ref=e1509]:
+            - generic [ref=e1686] [cursor=pointer]: 跳过
+            - button "重新检测" [ref=e1687] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [ref=e794]:
+      - textbox "Terminal input" [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e1513]:
+    - generic [ref=e1515] [cursor=pointer]: 
+    - generic [ref=e1516]:
+      - generic [ref=e1517]: 55:05
+      - button "延时" [ref=e1518] [cursor=pointer]
+    - generic [ref=e1519]:
+      - generic [ref=e1520]:
+        - generic [ref=e1521] [cursor=pointer]:
+          - generic [ref=e1522]: 
+          - generic [ref=e1523]: 桌面
+        - generic [ref=e1524] [cursor=pointer]:
+          - generic [ref=e1525]: 
+          - generic [ref=e1526]: 字符
+      - generic [ref=e1527] [cursor=pointer]:
+        - generic [ref=e1528]: 
+        - text: 切换界面
+    - generic [ref=e1530]:
+      - button " 关闭环境" [ref=e1531] [cursor=pointer]:
+        - generic [ref=e1532]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e1534] [cursor=pointer]:
+      - generic [ref=e1536]:
+        - generic [ref=e1537]: 
+        - text: 剪切板
+    - generic [ref=e1541] [cursor=pointer]:
+      - generic [ref=e1542]: 
+      - text: 共享桌面
+    - generic [ref=e1546] [cursor=pointer]:
+      - generic [ref=e1547]: 
+      - text: 下载代码
+    - generic [ref=e1551] [cursor=pointer]:
+      - generic [ref=e1552]: 
+      - text: 上传文件
+    - generic [ref=e1555] [cursor=pointer]:
+      - generic [ref=e1556]: 
+      - text: 桌面全屏
+    - generic [ref=e1560] [cursor=pointer]:
+      - generic [ref=e1561]: 
+      - text: 环境信息
+    - generic [ref=e1566] [cursor=pointer]:
+      - img [ref=e1567]
+      - text: SSH直连
+    - generic [ref=e1571] [cursor=pointer]:
+      - img [ref=e1572]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1573] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1577] [cursor=pointer]:
+      - generic [ref=e1578]: 
+      - text: 新手指南

@@ -1,0 +1,268 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - link [ref=e7] [cursor=pointer]:
+      - /url: https://www.lanqiao.cn/mall/?code=83
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - link [ref=e14] [cursor=pointer]:
+          - /url: https://www.lanqiao.cn/
+        - generic [ref=e15]:
+          - link "学习" [ref=e20] [cursor=pointer]:
+            - /url: https://www.lanqiao.cn/
+          - link "蓝桥杯" [ref=e25] [cursor=pointer]:
+            - /url: https://dasai.lanqiao.cn/
+          - link "求职辅导" [ref=e27] [cursor=pointer]:
+            - /url: https://www.lanqiao.cn/employment/
+          - generic [ref=e32] [cursor=pointer]: 考证
+          - link "讨论区" [ref=e34] [cursor=pointer]:
+            - /url: https://www.lanqiao.cn/questions/
+          - generic [ref=e39] [cursor=pointer]: 校企版
+          - textbox "搜索课程/书籍/问答" [ref=e41]
+      - generic [ref=e43]:
+        - link [ref=e44] [cursor=pointer]:
+          - /url: https://www.lanqiao.cn/vip
+        - generic [ref=e46]:
+          - link "登录" [ref=e47] [cursor=pointer]:
+            - /url: https://passport.lanqiao.cn/login/?action=login&dialog=0&usertype=0&auth_type=login&from=shiyan&backurl=https%3A%2F%2Fwww.lanqiao.cn%2Fcourses%2F1
+          - link "注册" [ref=e49] [cursor=pointer]:
+            - /url: https://passport.lanqiao.cn/register/?action=login&dialog=0&usertype=0&auth_type=login&from=shiyan&backurl=https%3A%2F%2Fwww.lanqiao.cn%2Fcourses%2F1
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e59] [cursor=pointer]: 关注
+          - generic [ref=e62] [cursor=pointer]: 分享
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - generic "Linux 基础入门" [ref=e65]
+            - generic [ref=e66]: 免费
+          - generic [ref=e67]:
+            - generic [ref=e68]: Linux
+            - generic [ref=e69]: 基础入门
+            - generic [ref=e70]: 新手入门
+          - generic [ref=e72]:
+            - generic [ref=e73]: 427063 人学过
+            - generic [ref=e74]: 85481 次评价
+            - generic [ref=e75]: "难度: 初级"
+            - generic [ref=e76]: 综合评分： 9.4
+            - generic [ref=e77]: 2025-10-17 更新
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - generic [ref=e80]: 免费
+          - generic [ref=e81]: 所有用户皆可免费学习该课程
+        - button "加入课程" [ref=e83] [cursor=pointer]
+      - generic [ref=e85]:
+        - generic [ref=e86] [cursor=pointer]: 课程介绍
+        - generic [ref=e87] [cursor=pointer]: 章节目录
+        - generic [ref=e88] [cursor=pointer]: 课程问答&报告
+        - generic [ref=e89] [cursor=pointer]:
+          - text: 课程评价
+          - generic [ref=e90]: "85481"
+      - generic [ref=e91]:
+        - generic [ref=e92]:
+          - generic [ref=e94]: 你将学到的
+          - generic [ref=e96]:
+            - generic [ref=e97]: Linux 基本概念
+            - generic [ref=e98]: Linux 常用命令
+            - generic [ref=e99]: Linux 用户与权限管理
+            - generic [ref=e100]: Linux 目录结构与文件操作
+            - generic [ref=e101]: Linux 环境变量
+            - generic [ref=e102]: 查找文件
+            - generic [ref=e103]: 打包与压缩
+            - generic [ref=e104]: Linux 文件系统与磁盘管理
+            - generic [ref=e105]: Linux 上获取帮助
+            - generic [ref=e106]: Linux Crontab
+            - generic [ref=e107]: 管道与数据流重定向
+            - generic [ref=e108]: 简单的正则表达式
+            - generic [ref=e109]: Linux 软件安装
+            - generic [ref=e110]: Linux 进程管理
+        - generic [ref=e111]:
+          - generic [ref=e113]: 详细介绍
+          - generic [ref=e117]:
+            - heading "实验任务" [level=3] [ref=e118]
+            - list [ref=e119]:
+              - listitem [ref=e120]: 动手实践 Linux 常用命令
+              - listitem [ref=e121]: 创建、修改与删除用户及用户组
+              - listitem [ref=e122]: 设置文件及目录的权限
+              - listitem [ref=e123]: 创建、修改和删除文件及目录
+              - listitem [ref=e124]: 设置环境变量
+              - listitem [ref=e125]: 查找指定的文件并打包
+              - listitem [ref=e126]: 设置任务计划
+              - listitem [ref=e127]: 通过管道和重定向执行多条命令
+              - listitem [ref=e128]: 安装需要的软件
+            - heading "先学知识" [level=3] [ref=e129]
+            - list [ref=e130]:
+              - listitem [ref=e131]:
+                - text: 需要了解蓝桥云课的基本操作，推荐学习
+                - link "新手入门指南" [ref=e132] [cursor=pointer]:
+                  - /url: https://www.lanqiao.cn/courses/63
+                - text: 。
+            - heading "课程难度" [level=3] [ref=e133]
+            - list [ref=e134]:
+              - listitem [ref=e135]: 本课程难度为简单。
+            - heading "面向用户" [level=3] [ref=e136]
+            - list [ref=e137]:
+              - listitem [ref=e138]: 本课程为 Linux 的基本使用入门，面向没有经验的新手，如果你希望快速上手 Linux 操作系统，为以后的 IT 技术工作打下良好的基础，本课程是你非常好的入门选择。
+        - generic [ref=e139]:
+          - generic [ref=e141]: 课程教师
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - link "Edward" [ref=e146] [cursor=pointer]:
+                - /url: /users/20406
+                - img "Edward" [ref=e147]
+              - generic [ref=e148]:
+                - generic [ref=e149]:
+                  - generic [ref=e150]: Edward
+                  - generic [ref=e151]: 共发布过 11 门课程
+                  - generic [ref=e153]: 共有 596884 位学生
+                - generic [ref=e154]: 资深程序员，5年Linux运维、企业级开发经验及数据库实战和教学经验。
+                - generic [ref=e155]:
+                  - generic [ref=e156]: 老师发布的其他课程：
+                  - generic [ref=e159]:
+                    - generic [ref=e160]:
+                      - link [ref=e163] [cursor=pointer]:
+                        - /url: /courses/2
+                      - link [ref=e166] [cursor=pointer]:
+                        - /url: /courses/12
+                      - link [ref=e169] [cursor=pointer]:
+                        - /url: /courses/42
+                      - link [ref=e172] [cursor=pointer]:
+                        - /url: /courses/46
+                      - link [ref=e175] [cursor=pointer]:
+                        - /url: /courses/47
+                    - generic [ref=e176]:
+                      - link [ref=e179] [cursor=pointer]:
+                        - /url: /courses/52
+                      - link [ref=e182] [cursor=pointer]:
+                        - /url: /courses/56
+                      - link [ref=e185] [cursor=pointer]:
+                        - /url: /courses/69
+                      - link [ref=e188] [cursor=pointer]:
+                        - /url: /courses/75
+                      - link [ref=e191] [cursor=pointer]:
+                        - /url: /courses/95
+            - generic [ref=e196]:
+              - generic [ref=e197]: 共同作者
+              - link "taotao taotao 查看老师的所有课程>>" [ref=e199] [cursor=pointer]:
+                - /url: /users/1700764
+                - 'generic "id: 1700764" [ref=e200]':
+                  - img "taotao" [ref=e201]
+                - generic [ref=e202]:
+                  - generic [ref=e203]: taotao
+                  - text: 查看老师的所有课程>>
+        - generic [ref=e204]:
+          - generic [ref=e206]: 学过本课的同学也学过
+          - generic [ref=e208]:
+            - link "新手入门指南之玩转蓝桥云课 初级 · 491943人学过" [ref=e209] [cursor=pointer]:
+              - /url: /courses/63
+              - generic [ref=e211]:
+                - generic "新手入门指南之玩转蓝桥云课" [ref=e212]
+                - generic [ref=e213]: 初级 · 491943人学过
+            - link "Python 新手入门课 初级 · 139375人学过" [ref=e214] [cursor=pointer]:
+              - /url: /courses/1330
+              - generic [ref=e216]:
+                - generic "Python 新手入门课" [ref=e217]
+                - generic [ref=e218]: 初级 · 139375人学过
+            - link "Vim 基础入门 初级 · 100836人学过" [ref=e219] [cursor=pointer]:
+              - /url: /courses/2
+              - generic [ref=e221]:
+                - generic "Vim 基础入门" [ref=e222]
+                - generic [ref=e223]: 初级 · 100836人学过
+            - link "Vim 基础入门 初级 · 100836人学过" [ref=e224] [cursor=pointer]:
+              - /url: /courses/2
+              - generic [ref=e226]:
+                - generic "Vim 基础入门" [ref=e227]
+                - generic [ref=e228]: 初级 · 100836人学过
+            - link "Vim 基础入门 初级 · 100836人学过" [ref=e229] [cursor=pointer]:
+              - /url: /courses/2
+              - generic [ref=e231]:
+                - generic "Vim 基础入门" [ref=e232]
+                - generic [ref=e233]: 初级 · 100836人学过
+            - link "操作系统原理与实践 初级 · 59609人学过" [ref=e234] [cursor=pointer]:
+              - /url: /courses/115
+              - generic [ref=e236]:
+                - generic "操作系统原理与实践" [ref=e237]
+                - generic [ref=e238]: 初级 · 59609人学过
+            - link "Linux 命令基础入门 初级 · 50991人学过" [ref=e239] [cursor=pointer]:
+              - /url: /courses/68
+              - generic [ref=e241]:
+                - generic "Linux 命令基础入门" [ref=e242]
+                - generic [ref=e243]: 初级 · 50991人学过
+            - link "Linux 命令基础入门 初级 · 50991人学过" [ref=e244] [cursor=pointer]:
+              - /url: /courses/68
+              - generic [ref=e246]:
+                - generic "Linux 命令基础入门" [ref=e247]
+                - generic [ref=e248]: 初级 · 50991人学过
+    - contentinfo [ref=e250]:
+      - generic [ref=e251]:
+        - generic [ref=e252]:
+          - generic [ref=e253]:
+            - img "蓝桥云课" [ref=e254]
+            - generic [ref=e256]:
+              - generic [ref=e257]: 国信蓝桥教育科技股份有限公司成立于2005年，是一家以大学生就业为切入点，以职业服务为主线，基于大学生职业生涯各个阶段的需求提供精准服务的人才大数据科技服务平台。
+              - text: 蓝桥通过提供教育、就业、职业服务，连接高校和企业，做大学生的经纪人，伴随大学生成长。
+          - generic [ref=e258]:
+            - generic [ref=e259]: 快速导航
+            - link "蓝桥杯" [ref=e261] [cursor=pointer]:
+              - /url: http://dasai.lanqiao.cn/
+            - link "1+X" [ref=e263] [cursor=pointer]:
+              - /url: https://x.lanqiao.cn/
+            - link "企业版" [ref=e265] [cursor=pointer]:
+              - /url: /saas/
+            - link "成为作者" [ref=e267] [cursor=pointer]:
+              - /url: /contribute/
+          - generic [ref=e268]:
+            - generic [ref=e269]: 联系我们
+            - link "关于我们" [ref=e271] [cursor=pointer]:
+              - /url: /aboutus/
+            - link "联系我们" [ref=e273] [cursor=pointer]:
+              - /url: /contact/
+          - generic [ref=e274]:
+            - generic [ref=e275]: 相关链接
+            - link [ref=e277] [cursor=pointer]:
+              - /url: http://www.miit.gov.cn/
+              - img [ref=e278]
+            - link [ref=e280] [cursor=pointer]:
+              - /url: https://www.csia.org.cn/
+              - img [ref=e281]
+            - link [ref=e283] [cursor=pointer]:
+              - /url: https://www.miitjob.cn/
+              - img [ref=e284]
+          - generic [ref=e285]:
+            - generic [ref=e286]: 关注我们
+            - generic [ref=e287]:
+              - generic [ref=e288]: 10w
+              - generic [ref=e289]: 学子与你一起进步
+            - generic [ref=e290]:
+              - generic [ref=e294]: 代码交流群
+              - generic [ref=e298]: 云课视频号
+              - generic [ref=e302]: 蓝桥公众号
+        - generic [ref=e303]:
+          - link [ref=e304] [cursor=pointer]:
+            - /url: /bootcamp/
+            - img [ref=e306]
+          - link [ref=e308] [cursor=pointer]:
+            - /url: /louplus/
+            - img [ref=e310]
+          - link [ref=e312] [cursor=pointer]:
+            - /url: /vip/
+          - link [ref=e314] [cursor=pointer]:
+            - /url: /contests/
+          - link [ref=e316] [cursor=pointer]:
+            - /url: https://dasai.lanqiao.cn/
+        - generic [ref=e318]:
+          - link "浙公网安备33011002017356号" [ref=e319] [cursor=pointer]:
+            - /url: https://beian.mps.gov.cn/#/query/webSearch?code=33011002017356
+          - text: ©Copyright2024. 蓝桥网版权所有
+          - link "浙ICP备2021034501号-4" [ref=e320] [cursor=pointer]:
+            - /url: https://beian.miit.gov.cn/
+    - generic [ref=e322]:
+      - link [ref=e323] [cursor=pointer]:
+        - /url: /vip/
+      - link [ref=e325] [cursor=pointer]:
+        - /url: /cup/
+  - dialog [ref=e329]:
+    - generic [ref=e332]:
+      - link "资料活动" [ref=e333] [cursor=pointer]:
+        - /url: https://s.kehulaile.cn/E1m17ME
+        - img "资料活动" [ref=e334]
+      - img "关闭" [ref=e335] [cursor=pointer]

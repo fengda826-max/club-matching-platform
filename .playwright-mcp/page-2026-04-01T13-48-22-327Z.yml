@@ -1,0 +1,124 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: 简单的文本处理
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e1487]:
+        - generic [ref=e1488]:
+          - generic [ref=e1489]:
+            - generic [ref=e1490] [cursor=pointer]: 
+            - generic [ref=e1491]: 2.2 col 命令
+            - generic [ref=e1492] [cursor=pointer]: 
+          - generic [ref=e1494]:
+            - paragraph [ref=e1612]:
+              - text: col 命令可以将
+              - code [ref=e1613]: Tab
+              - text: 换成对等数量的空格键，或反转这个操作。
+            - heading "使用方式" [level=4] [ref=e1614]
+            - generic [ref=e1615]:
+              - code [ref=e1616]: col [option]
+              - img "copy" [ref=e1618] [cursor=pointer]
+            - heading "常用的选项有" [level=4] [ref=e1619]
+            - table [ref=e1620]:
+              - rowgroup [ref=e1621]:
+                - row "选项 说明" [ref=e1622]:
+                  - columnheader "选项" [ref=e1623]
+                  - columnheader "说明" [ref=e1624]
+              - rowgroup [ref=e1625]:
+                - row "-x 将Tab转换为空格" [ref=e1626]:
+                  - cell "-x" [ref=e1627]:
+                    - code [ref=e1628]: "-x"
+                  - cell "将Tab转换为空格" [ref=e1629]:
+                    - text: 将
+                    - code [ref=e1630]: Tab
+                    - text: 转换为空格
+                - row "-h 将空格转换为Tab（默认选项）" [ref=e1631]:
+                  - cell "-h" [ref=e1632]:
+                    - code [ref=e1633]: "-h"
+                  - cell "将空格转换为Tab（默认选项）" [ref=e1634]:
+                    - text: 将空格转换为
+                    - code [ref=e1635]: Tab
+                    - text: （默认选项）
+            - heading "操作举例" [level=4] [ref=e1636]
+            - generic [ref=e1637]:
+              - code [ref=e1638]: "# 查看 /etc/protocols 中的不可见字符，可以看到很多 ^I ，这其实就是 Tab 转义成可见字符的符号 cat -A /etc/protocols # 使用 col -x 将 /etc/protocols 中的 Tab 转换为空格，然后再使用 cat 查看，你发现 ^I 不见了 cat /etc/protocols | col -x | cat -A"
+              - img "copy" [ref=e1640] [cursor=pointer]
+            - paragraph [ref=e1641]:
+              - img "此处输入图片的描述" [ref=e1642]
+        - generic [ref=e1505]:
+          - progressbar [ref=e1580]
+          - link "" [ref=e1507] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e1508]: 
+          - button "下一步" [ref=e1510] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [active] [ref=e794]:
+      - textbox "Terminal input" [active] [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e1513]:
+    - generic [ref=e1515] [cursor=pointer]: 
+    - generic [ref=e1516]:
+      - generic [ref=e1517]: 56:34
+      - button "延时" [ref=e1518] [cursor=pointer]
+    - generic [ref=e1519]:
+      - generic [ref=e1520]:
+        - generic [ref=e1521] [cursor=pointer]:
+          - generic [ref=e1522]: 
+          - generic [ref=e1523]: 桌面
+        - generic [ref=e1524] [cursor=pointer]:
+          - generic [ref=e1525]: 
+          - generic [ref=e1526]: 字符
+      - generic [ref=e1527] [cursor=pointer]:
+        - generic [ref=e1528]: 
+        - text: 切换界面
+    - generic [ref=e1530]:
+      - button " 关闭环境" [ref=e1531] [cursor=pointer]:
+        - generic [ref=e1532]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e1534] [cursor=pointer]:
+      - generic [ref=e1536]:
+        - generic [ref=e1537]: 
+        - text: 剪切板
+    - generic [ref=e1541] [cursor=pointer]:
+      - generic [ref=e1542]: 
+      - text: 共享桌面
+    - generic [ref=e1546] [cursor=pointer]:
+      - generic [ref=e1547]: 
+      - text: 下载代码
+    - generic [ref=e1551] [cursor=pointer]:
+      - generic [ref=e1552]: 
+      - text: 上传文件
+    - generic [ref=e1555] [cursor=pointer]:
+      - generic [ref=e1556]: 
+      - text: 桌面全屏
+    - generic [ref=e1560] [cursor=pointer]:
+      - generic [ref=e1561]: 
+      - text: 环境信息
+    - generic [ref=e1566] [cursor=pointer]:
+      - img [ref=e1567]
+      - text: SSH直连
+    - generic [ref=e1571] [cursor=pointer]:
+      - img [ref=e1572]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1573] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1577] [cursor=pointer]:
+      - generic [ref=e1578]: 
+      - text: 新手指南

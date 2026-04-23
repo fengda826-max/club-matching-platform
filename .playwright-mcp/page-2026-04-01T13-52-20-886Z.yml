@@ -1,0 +1,274 @@
+- generic [ref=e4]:
+  - link [ref=e267] [cursor=pointer]:
+    - /url: https://www.lanqiao.cn/mall/?code=83
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - link [ref=e11] [cursor=pointer]:
+        - /url: https://www.lanqiao.cn/
+      - generic [ref=e12]:
+        - link "学习" [ref=e17] [cursor=pointer]:
+          - /url: https://www.lanqiao.cn/
+        - link "蓝桥杯" [ref=e22] [cursor=pointer]:
+          - /url: https://dasai.lanqiao.cn/
+        - link "求职辅导" [ref=e24] [cursor=pointer]:
+          - /url: https://www.lanqiao.cn/employment/
+        - generic [ref=e29] [cursor=pointer]: 考证
+        - link "讨论区" [ref=e31] [cursor=pointer]:
+          - /url: https://www.lanqiao.cn/questions/
+        - generic [ref=e36] [cursor=pointer]: 校企版
+        - textbox "搜索课程/书籍/问答" [ref=e38]
+    - generic [ref=e40]:
+      - link [ref=e41] [cursor=pointer]:
+        - /url: https://www.lanqiao.cn/vip
+      - generic [ref=e43]:
+        - link "2" [ref=e268] [cursor=pointer]:
+          - /url: https://www.lanqiao.cn/user/messages/
+          - generic [ref=e269]: "2"
+        - link "3863206" [ref=e47] [cursor=pointer]:
+          - /url: https://www.lanqiao.cn/users/3863206/
+  - generic [ref=e52]:
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e57] [cursor=pointer]: 关注
+        - generic [ref=e60] [cursor=pointer]: 分享
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - generic "Linux 基础入门" [ref=e63]
+          - generic [ref=e64]: 免费
+        - generic [ref=e65]:
+          - generic [ref=e66]: Linux
+          - generic [ref=e67]: 基础入门
+          - generic [ref=e68]: 新手入门
+        - generic [ref=e70]:
+          - generic [ref=e71]: 427112 人学过
+          - generic [ref=e72]: 85488 次评价
+          - generic [ref=e73]: "难度: 初级"
+          - generic [ref=e74]: 综合评分： 9.4
+          - generic [ref=e75]: 2025-10-17 更新
+      - generic [ref=e272]: 完成度：2/21
+    - generic [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]: 免费
+        - generic [ref=e79]: 所有用户皆可免费学习该课程
+      - button "继续学习" [ref=e275] [cursor=pointer]
+    - generic [ref=e83]:
+      - generic [ref=e84] [cursor=pointer]: 课程介绍
+      - generic [ref=e85] [cursor=pointer]: 章节目录
+      - generic [ref=e86] [cursor=pointer]: 课程问答&报告
+      - generic [ref=e87] [cursor=pointer]:
+        - text: 课程评价
+        - generic [ref=e88]: "85488"
+    - generic [ref=e357]:
+      - generic [ref=e358]:
+        - generic [ref=e359]:
+          - img [ref=e360]
+          - generic [ref=e362]: 17个实验
+        - generic [ref=e363]:
+          - img [ref=e364]
+          - generic [ref=e366]: 4个挑战
+      - generic [ref=e371]:
+        - generic [ref=e374]: 共21个章节
+        - generic [ref=e382]:
+          - generic [ref=e383]:
+            - generic [ref=e385]:
+              - generic [ref=e387]: 实验
+              - generic "Linux 系统简介" [ref=e388]
+            - paragraph [ref=e391]: "知识点: 1.linux为何物 2.linux历史简介 3.linux重要人物 4.linux与windows的不同 5.如何学习linux"
+          - generic [ref=e392]:
+            - generic [ref=e394]:
+              - generic [ref=e396]: 实验
+              - generic "基本概念及操作" [ref=e397]
+            - paragraph [ref=e400]: "知识点: 1.Linux基本命令 2.通配符的使用 3.查看帮助文档"
+          - generic [ref=e401]:
+            - generic [ref=e403]:
+              - generic [ref=e405]: 实验
+              - generic "用户及文件权限管理" [ref=e406]
+            - paragraph [ref=e409]: "知识点: 1.Linux用户管理 2.Linux权限管理"
+          - generic [ref=e410]:
+            - generic [ref=e412]:
+              - generic [ref=e414]: 实验
+              - generic "Linux 目录结构及文件基本操作" [ref=e415]
+            - paragraph [ref=e418]:
+              - text: "知识点: 1.每个目录的大体内容 2.文件的属性 3."
+              - code [ref=e419]: touch
+              - text: ，
+              - code [ref=e420]: file
+              - text: ，
+              - code [ref=e421]: rm
+              - text: ，
+              - code [ref=e422]: mv
+              - text: 等基本命令
+          - generic [ref=e423]:
+            - generic [ref=e425]:
+              - generic [ref=e427]: 实验
+              - generic "环境变量与文件查找" [ref=e428]
+            - paragraph [ref=e431]: "知识点: 1.环境变量的设置 2.环境变量的修改"
+          - generic [ref=e434]:
+            - generic [ref=e436]: 挑战
+            - generic "寻找文件" [ref=e437]
+          - generic [ref=e438]:
+            - generic [ref=e440]:
+              - generic [ref=e442]: 实验
+              - generic "文件打包与解压缩" [ref=e443]
+            - paragraph [ref=e446]: "知识点: 1.zip命令 2.tar命令 3.压缩与解压常用组合"
+          - generic [ref=e447]:
+            - generic [ref=e449]:
+              - generic [ref=e451]: 实验
+              - generic "文件系统操作与磁盘管理" [ref=e452]
+            - paragraph [ref=e455]:
+              - text: "知识点: 1."
+              - code [ref=e456]: df
+              - text: ，
+              - code [ref=e457]: du
+              - text: ，
+              - code [ref=e458]: mount
+              - text: 命令的使用 2.磁盘相关知识学习
+          - generic [ref=e459]:
+            - generic [ref=e461]:
+              - generic [ref=e463]: 实验
+              - generic "Linux 下的帮助命令" [ref=e464]
+            - paragraph [ref=e467]: "知识点: 1.内建命令与外部命令之分 2.help，man，info命令的使用以及区别"
+          - generic [ref=e468]:
+            - generic [ref=e470]:
+              - generic [ref=e472]: 实验
+              - generic "Linux 任务计划 crontab" [ref=e473]
+            - paragraph [ref=e476]: "知识点: 1.crontab语法"
+          - generic [ref=e479]:
+            - generic [ref=e481]: 挑战
+            - generic "备份日志" [ref=e482]
+          - generic [ref=e483]:
+            - generic [ref=e485]:
+              - generic [ref=e487]: 实验
+              - generic "命令执行顺序控制与管道" [ref=e488]
+            - paragraph [ref=e491]:
+              - text: "知识点: 1."
+              - code [ref=e492]: cut
+              - text: ，
+              - code [ref=e493]: grep
+              - text: ，
+              - code [ref=e494]: wc
+              - text: ，
+              - code [ref=e495]: sort
+              - text: 命令的使用 2.管道的理解
+          - generic [ref=e496]:
+            - generic [ref=e498]:
+              - generic [ref=e500]: 实验
+              - generic "简单的文本处理" [ref=e501]
+            - paragraph [ref=e504]: "知识点: 1.常见文本处理命令 2.如何简单处理文本"
+          - generic [ref=e505]:
+            - generic [ref=e507]:
+              - generic [ref=e509]: 实验
+              - generic "数据流重定向" [ref=e510]
+            - paragraph [ref=e513]: "知识点: 1.重定向怎么用 2.文件描述符(0，1，2)"
+          - generic [ref=e516]:
+            - generic [ref=e518]: 挑战
+            - generic "历史命令" [ref=e519]
+          - generic [ref=e520]:
+            - generic [ref=e522]:
+              - generic [ref=e524]: 实验
+              - generic "正则表达式基础" [ref=e525]
+            - paragraph [ref=e528]:
+              - text: "知识点: 1.掌握基本命令："
+              - code [ref=e529]: sed
+              - text: ，
+              - code [ref=e530]: grep
+              - text: ，
+              - code [ref=e531]: awk
+              - text: 的用法 2.掌握正则表达式符号和语法
+          - generic [ref=e534]:
+            - generic [ref=e536]: 挑战
+            - generic "数据提取" [ref=e537]
+          - generic [ref=e538]:
+            - generic [ref=e540]:
+              - generic [ref=e542]: 实验
+              - generic "Linux 下软件安装" [ref=e543]
+            - paragraph [ref=e546]: "知识点: 1.在线安装 2.从磁盘安装deb软件包 3.从二进制软件包安装 4.从源代码编译安装"
+          - generic [ref=e547]:
+            - generic [ref=e549]:
+              - generic [ref=e551]: 实验
+              - generic "Linux 进程概念" [ref=e552]
+            - paragraph [ref=e555]: "知识点: 1.进程与程序 2.进程的衍生 3.工作管理"
+          - generic [ref=e556]:
+            - generic [ref=e558]:
+              - generic [ref=e560]: 实验
+              - generic "Linux 进程管理" [ref=e561]
+            - paragraph [ref=e564]: "知识点: 1.查看进程的运行状态 2.进程的结束控制 3.进程的执行顺序"
+          - generic [ref=e565]:
+            - generic [ref=e567]:
+              - generic [ref=e569]: 实验
+              - generic "Linux 日志系统" [ref=e570]
+            - paragraph [ref=e573]: "知识点: 1.常见的日志 2.配置的日志 3.轮替的日志"
+  - contentinfo [ref=e185]:
+    - generic [ref=e186]:
+      - generic [ref=e187]:
+        - generic [ref=e188]:
+          - img "蓝桥云课" [ref=e189]
+          - generic [ref=e191]:
+            - generic [ref=e192]: 国信蓝桥教育科技股份有限公司成立于2005年，是一家以大学生就业为切入点，以职业服务为主线，基于大学生职业生涯各个阶段的需求提供精准服务的人才大数据科技服务平台。
+            - text: 蓝桥通过提供教育、就业、职业服务，连接高校和企业，做大学生的经纪人，伴随大学生成长。
+        - generic [ref=e193]:
+          - generic [ref=e194]: 快速导航
+          - link "蓝桥杯" [ref=e196] [cursor=pointer]:
+            - /url: http://dasai.lanqiao.cn/
+          - link "1+X" [ref=e198] [cursor=pointer]:
+            - /url: https://x.lanqiao.cn/
+          - link "企业版" [ref=e200] [cursor=pointer]:
+            - /url: /saas/
+          - link "成为作者" [ref=e202] [cursor=pointer]:
+            - /url: /contribute/
+        - generic [ref=e203]:
+          - generic [ref=e204]: 联系我们
+          - link "关于我们" [ref=e206] [cursor=pointer]:
+            - /url: /aboutus/
+          - link "联系我们" [ref=e208] [cursor=pointer]:
+            - /url: /contact/
+        - generic [ref=e209]:
+          - generic [ref=e210]: 相关链接
+          - link [ref=e212] [cursor=pointer]:
+            - /url: http://www.miit.gov.cn/
+            - img [ref=e213]
+          - link [ref=e215] [cursor=pointer]:
+            - /url: https://www.csia.org.cn/
+            - img [ref=e216]
+          - link [ref=e218] [cursor=pointer]:
+            - /url: https://www.miitjob.cn/
+            - img [ref=e219]
+        - generic [ref=e220]:
+          - generic [ref=e221]: 关注我们
+          - generic [ref=e222]:
+            - generic [ref=e223]: 10w
+            - generic [ref=e224]: 学子与你一起进步
+          - generic [ref=e225]:
+            - generic [ref=e229]: 代码交流群
+            - generic [ref=e233]: 云课视频号
+            - generic [ref=e237]: 蓝桥公众号
+      - generic [ref=e238]:
+        - link [ref=e239] [cursor=pointer]:
+          - /url: /bootcamp/
+          - img [ref=e241]
+        - link [ref=e243] [cursor=pointer]:
+          - /url: /louplus/
+          - img [ref=e245]
+        - link [ref=e247] [cursor=pointer]:
+          - /url: /vip/
+        - link [ref=e249] [cursor=pointer]:
+          - /url: /contests/
+        - link [ref=e251] [cursor=pointer]:
+          - /url: https://dasai.lanqiao.cn/
+      - generic [ref=e253]:
+        - link "浙公网安备33011002017356号" [ref=e254] [cursor=pointer]:
+          - /url: https://beian.mps.gov.cn/#/query/webSearch?code=33011002017356
+        - text: ©Copyright2024. 蓝桥网版权所有
+        - link "浙ICP备2021034501号-4" [ref=e255] [cursor=pointer]:
+          - /url: https://beian.miit.gov.cn/
+  - generic [ref=e338]:
+    - generic [ref=e339]:
+      - img "running" [ref=e340]
+      - generic [ref=e341]: 正在实验
+      - generic [ref=e342]: 52:35 后将自动删除环境
+    - generic [ref=e343]: 简单的文本处理
+  - generic [ref=e257]:
+    - link [ref=e258] [cursor=pointer]:
+      - /url: /vip/
+    - link [ref=e261] [cursor=pointer]:
+      - /url: /cup/

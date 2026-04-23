@@ -1,0 +1,90 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 任务计划 crontab
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e931]:
+        - generic [ref=e932]:
+          - generic [ref=e933]:
+            - generic [ref=e934] [cursor=pointer]: 
+            - generic [ref=e935]: 二、crontab 的使用
+            - generic [ref=e936] [cursor=pointer]: 
+          - paragraph [ref=e1026]: crontab 命令常见于 Unix 和类 Unix 的操作系统之中（Linux 就属于类 Unix 操作系统），用于设置周期性被执行的指令。
+        - generic [ref=e952]:
+          - generic [ref=e953]:
+            - progressbar
+          - link "" [ref=e954] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e955]: 
+          - button "下一步" [active] [ref=e957] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [ref=e794]:
+      - textbox "Terminal input" [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e960]:
+    - generic [ref=e962] [cursor=pointer]: 
+    - generic [ref=e963]:
+      - generic [ref=e964]: 58:46
+      - button "延时" [ref=e965] [cursor=pointer]
+    - generic [ref=e966]:
+      - generic [ref=e967]:
+        - generic [ref=e968] [cursor=pointer]:
+          - generic [ref=e969]: 
+          - generic [ref=e970]: 桌面
+        - generic [ref=e971] [cursor=pointer]:
+          - generic [ref=e972]: 
+          - generic [ref=e973]: 字符
+      - generic [ref=e974] [cursor=pointer]:
+        - generic [ref=e975]: 
+        - text: 切换界面
+    - generic [ref=e977]:
+      - button " 关闭环境" [ref=e978] [cursor=pointer]:
+        - generic [ref=e979]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e981] [cursor=pointer]:
+      - generic [ref=e983]:
+        - generic [ref=e984]: 
+        - text: 剪切板
+    - generic [ref=e988] [cursor=pointer]:
+      - generic [ref=e989]: 
+      - text: 共享桌面
+    - generic [ref=e993] [cursor=pointer]:
+      - generic [ref=e994]: 
+      - text: 下载代码
+    - generic [ref=e998] [cursor=pointer]:
+      - generic [ref=e999]: 
+      - text: 上传文件
+    - generic [ref=e1002] [cursor=pointer]:
+      - generic [ref=e1003]: 
+      - text: 桌面全屏
+    - generic [ref=e1007] [cursor=pointer]:
+      - generic [ref=e1008]: 
+      - text: 环境信息
+    - generic [ref=e1013] [cursor=pointer]:
+      - img [ref=e1014]
+      - text: SSH直连
+    - generic [ref=e1018] [cursor=pointer]:
+      - img [ref=e1019]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1020] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1024] [cursor=pointer]:
+      - generic [ref=e1025]: 
+      - text: 新手指南

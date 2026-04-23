@@ -1,0 +1,77 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 系统简介
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e640]:
+        - generic [ref=e641]:
+          - generic [ref=e642]:
+            - generic [ref=e643] [cursor=pointer]: 
+            - generic [ref=e644]: 2.4 如何学习 Linux
+            - generic [ref=e645] [cursor=pointer]: 
+          - generic [ref=e647]:
+            - heading "1. 学习心态" [level=4] [ref=e648]:
+              - text: "1."
+              - code [ref=e649]: 学习心态
+            - list [ref=e650]:
+              - listitem [ref=e651]:
+                - paragraph [ref=e652]: 明确目的：你是要用 Linux 来干什么，搭建服务器、做程序开发、日常办公，还是娱乐游戏；
+              - listitem [ref=e653]:
+                - paragraph [ref=e654]: 面对现实：Linux 大都在命令行下操作，能否接受不用或少用图形界面；
+              - listitem [ref=e655]:
+                - paragraph [ref=e656]:
+                  - text: 是学习 Linux 操作系统本身还是某一个 Linux 发行版（
+                  - link "Ubuntu" [ref=e657] [cursor=pointer]:
+                    - /url: http://www.ubuntu.com/
+                  - text: ，
+                  - link "CentOS" [ref=e658] [cursor=pointer]:
+                    - /url: http://www.centos.org/
+                  - text: ，
+                  - link "Fedora" [ref=e659] [cursor=pointer]:
+                    - /url: http://fedoraproject.org/
+                  - text: ，
+                  - link "OpenSUSE" [ref=e660] [cursor=pointer]:
+                    - /url: http://www.opensuse.org/
+                  - text: ，
+                  - link "Debian" [ref=e661] [cursor=pointer]:
+                    - /url: http://www.debian.org/
+                  - text: ，
+                  - link "Mint" [ref=e662] [cursor=pointer]:
+                    - /url: http://linuxmint.com/
+                  - text: 等等），如果你对发行版的概念或者它们之间的关系不明确的话可以参看
+                  - link "Linux 发行版" [ref=e663] [cursor=pointer]:
+                    - /url: http://baike.baidu.com/view/897468.htm
+                  - text: 。
+            - heading "2. 注重基础，从头开始" [level=4] [ref=e664]:
+              - text: "2."
+              - code [ref=e665]: 注重基础，从头开始
+            - paragraph [ref=e666]: 大致的学习路径如下：
+            - paragraph [ref=e667]:
+              - img "1" [ref=e668]
+        - generic [ref=e669]:
+          - progressbar [ref=e671]
+          - link "" [ref=e672] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e673]: 
+          - button "完成学习" [ref=e675] [cursor=pointer]
+  - generic [ref=e628]:
+    - generic [ref=e629]: 点击下方环境窗口，开启实战
+    - generic [ref=e635] [cursor=pointer]:
+      - generic [ref=e636]: 默认环境
+      - img [ref=e637]

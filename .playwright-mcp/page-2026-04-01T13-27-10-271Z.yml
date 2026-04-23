@@ -1,0 +1,112 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 任务计划 crontab
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e931]:
+        - generic [ref=e932]:
+          - generic [ref=e933]:
+            - generic [ref=e934] [cursor=pointer]: 
+            - generic [ref=e935]: 2.2 crontab 准备
+            - generic [ref=e936] [cursor=pointer]: 
+          - generic [ref=e938]:
+            - paragraph [ref=e1035]:
+              - text: crontab 在本实验环境中需要做一些特殊的准备，首先我们会启动
+              - code [ref=e1036]: rsyslog
+              - text: ，以便我们可以通过日志中的信息来了解我们的任务是否真正的被执行了（在本实验环境中需要手动启动，而在自己本地中 Ubuntu 会默认自行启动不需要手动启动）。
+            - generic [ref=e1037]:
+              - code [ref=e1038]: sudo apt-get install -y rsyslog sudo service rsyslog start
+              - img "copy" [ref=e1040] [cursor=pointer]
+            - paragraph [ref=e1041]:
+              - img "service-rsyslog-start" [ref=e1042]
+            - paragraph [ref=e1043]: "在本实验环境中 crontab 也是不被默认启动的，同时不能在后台由 upstart 来管理，所以需要我们来启动它:"
+            - generic [ref=e1044]:
+              - code [ref=e1045]: sudo cron －f &
+              - img "copy" [ref=e1047] [cursor=pointer]
+            - paragraph [ref=e1048]:
+              - img "此处输入图片的描述" [ref=e1049]
+        - generic [ref=e952]:
+          - progressbar [ref=e1027]
+          - generic [ref=e1050]:
+            - generic [ref=e1052] [cursor=pointer]: 
+            - generic [ref=e1053]:
+              - generic [ref=e1054]: 
+              - text: 检测未通过
+            - generic [ref=e1055]: 没有启动 crontab
+          - link "" [ref=e954] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e955]: 
+          - generic [ref=e956]:
+            - generic [ref=e1056] [cursor=pointer]: 跳过
+            - button "重新检测" [ref=e1057] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [ref=e794]:
+      - textbox "Terminal input" [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e960]:
+    - generic [ref=e962] [cursor=pointer]: 
+    - generic [ref=e963]:
+      - generic [ref=e964]: 57:06
+      - button "延时" [ref=e965] [cursor=pointer]
+    - generic [ref=e966]:
+      - generic [ref=e967]:
+        - generic [ref=e968] [cursor=pointer]:
+          - generic [ref=e969]: 
+          - generic [ref=e970]: 桌面
+        - generic [ref=e971] [cursor=pointer]:
+          - generic [ref=e972]: 
+          - generic [ref=e973]: 字符
+      - generic [ref=e974] [cursor=pointer]:
+        - generic [ref=e975]: 
+        - text: 切换界面
+    - generic [ref=e977]:
+      - button " 关闭环境" [ref=e978] [cursor=pointer]:
+        - generic [ref=e979]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e981] [cursor=pointer]:
+      - generic [ref=e983]:
+        - generic [ref=e984]: 
+        - text: 剪切板
+    - generic [ref=e988] [cursor=pointer]:
+      - generic [ref=e989]: 
+      - text: 共享桌面
+    - generic [ref=e993] [cursor=pointer]:
+      - generic [ref=e994]: 
+      - text: 下载代码
+    - generic [ref=e998] [cursor=pointer]:
+      - generic [ref=e999]: 
+      - text: 上传文件
+    - generic [ref=e1002] [cursor=pointer]:
+      - generic [ref=e1003]: 
+      - text: 桌面全屏
+    - generic [ref=e1007] [cursor=pointer]:
+      - generic [ref=e1008]: 
+      - text: 环境信息
+    - generic [ref=e1013] [cursor=pointer]:
+      - img [ref=e1014]
+      - text: SSH直连
+    - generic [ref=e1018] [cursor=pointer]:
+      - img [ref=e1019]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1020] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1024] [cursor=pointer]:
+      - generic [ref=e1025]: 
+      - text: 新手指南

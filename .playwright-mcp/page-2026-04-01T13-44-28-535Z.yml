@@ -1,0 +1,214 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: 命令执行顺序控制与管道
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e365]:
+        - generic [ref=e367]:
+          - link "Linux 基础入门 Linux 基础入门 前往课程主页 >" [ref=e369] [cursor=pointer]:
+            - /url: /courses/1
+            - generic [ref=e370]:
+              - img "Linux 基础入门" [ref=e372]
+              - generic [ref=e373]:
+                - generic [ref=e374]: Linux 基础入门
+                - generic [ref=e375]: 前往课程主页 >
+          - generic [ref=e377]:
+            - paragraph [ref=e378]: 目前已学习 2/21 个章节
+            - progressbar [ref=e380]
+          - generic [ref=e586]:
+            - generic [ref=e383] [cursor=pointer]:
+              - generic [ref=e385]:
+                - generic [ref=e387]: 实验 1
+                - generic "Linux 系统简介" [ref=e388]
+              - img "已学习" [ref=e638]
+            - generic [ref=e392] [cursor=pointer]:
+              - generic [ref=e394]:
+                - generic [ref=e396]: 实验 2
+                - generic "基本概念及操作" [ref=e397]
+              - img "已学习" [ref=e639]
+            - generic [ref=e401] [cursor=pointer]:
+              - generic [ref=e403]:
+                - generic [ref=e405]: 实验 3
+                - generic "用户及文件权限管理" [ref=e406]
+              - img "未学习" [ref=e408]
+            - generic [ref=e410] [cursor=pointer]:
+              - generic [ref=e412]:
+                - generic [ref=e414]: 实验 4
+                - generic "Linux 目录结构及文件基本操作" [ref=e415]
+              - img "未学习" [ref=e417]
+            - generic [ref=e419] [cursor=pointer]:
+              - generic [ref=e421]:
+                - generic [ref=e423]: 实验 5
+                - generic "环境变量与文件查找" [ref=e424]
+              - img "未学习" [ref=e426]
+            - generic [ref=e428] [cursor=pointer]:
+              - generic [ref=e430]:
+                - generic [ref=e432]: 挑战 1
+                - generic "寻找文件" [ref=e433]
+              - img "未学习" [ref=e435]
+            - generic [ref=e437] [cursor=pointer]:
+              - generic [ref=e439]:
+                - generic [ref=e441]: 实验 6
+                - generic "文件打包与解压缩" [ref=e442]
+              - img "未学习" [ref=e444]
+            - generic [ref=e446] [cursor=pointer]:
+              - generic [ref=e448]:
+                - generic [ref=e450]: 实验 7
+                - generic "文件系统操作与磁盘管理" [ref=e451]
+              - img "未学习" [ref=e453]
+            - generic [ref=e455] [cursor=pointer]:
+              - generic [ref=e457]:
+                - generic [ref=e459]: 实验 8
+                - generic "Linux 下的帮助命令" [ref=e460]
+              - img "未学习" [ref=e462]
+            - generic [ref=e464] [cursor=pointer]:
+              - generic [ref=e466]:
+                - generic [ref=e468]: 实验 9
+                - generic "Linux 任务计划 crontab" [ref=e469]
+              - img "未学习" [ref=e471]
+            - generic [ref=e473] [cursor=pointer]:
+              - generic [ref=e475]:
+                - generic [ref=e477]: 挑战 2
+                - generic "备份日志" [ref=e478]
+              - img "未学习" [ref=e480]
+            - generic [ref=e482] [cursor=pointer]:
+              - generic [ref=e484]:
+                - generic [ref=e486]: 实验 10
+                - generic "命令执行顺序控制与管道" [ref=e487]
+              - img "未学习" [ref=e489]
+            - generic [ref=e491] [cursor=pointer]:
+              - generic [ref=e493]:
+                - generic [ref=e495]: 实验 11
+                - generic "简单的文本处理" [ref=e496]
+              - img "未学习" [ref=e498]
+            - generic [ref=e500] [cursor=pointer]:
+              - generic [ref=e502]:
+                - generic [ref=e504]: 实验 12
+                - generic "数据流重定向" [ref=e505]
+              - img "未学习" [ref=e507]
+            - generic [ref=e509] [cursor=pointer]:
+              - generic [ref=e511]:
+                - generic [ref=e513]: 挑战 3
+                - generic "历史命令" [ref=e514]
+              - img "未学习" [ref=e516]
+            - generic [ref=e518] [cursor=pointer]:
+              - generic [ref=e520]:
+                - generic [ref=e522]: 实验 13
+                - generic "正则表达式基础" [ref=e523]
+              - img "未学习" [ref=e525]
+            - generic [ref=e527] [cursor=pointer]:
+              - generic [ref=e529]:
+                - generic [ref=e531]: 挑战 4
+                - generic "数据提取" [ref=e532]
+              - img "未学习" [ref=e534]
+            - generic [ref=e536] [cursor=pointer]:
+              - generic [ref=e538]:
+                - generic [ref=e540]: 实验 14
+                - generic "Linux 下软件安装" [ref=e541]
+              - img "未学习" [ref=e543]
+            - generic [ref=e545] [cursor=pointer]:
+              - generic [ref=e547]:
+                - generic [ref=e549]: 实验 15
+                - generic "Linux 进程概念" [ref=e550]
+              - img "未学习" [ref=e552]
+            - generic [ref=e554] [cursor=pointer]:
+              - generic [ref=e556]:
+                - generic [ref=e558]: 实验 16
+                - generic "Linux 进程管理" [ref=e559]
+              - img "未学习" [ref=e561]
+            - generic [ref=e563] [cursor=pointer]:
+              - generic [ref=e565]:
+                - generic [ref=e567]: 实验 17
+                - generic "Linux 日志系统" [ref=e568]
+              - img "未学习" [ref=e570]
+        - generic [ref=e1165]:
+          - generic [ref=e1166]:
+            - generic [ref=e1167]:
+              - generic [ref=e1168] [cursor=pointer]: 
+              - generic [ref=e1169]: 四、作业
+              - generic [ref=e1170] [cursor=pointer]: 
+            - paragraph [ref=e1482]:
+              - text: 熟悉
+              - code [ref=e1483]: cut
+              - text: ，
+              - code [ref=e1484]: sort
+              - text: ，
+              - code [ref=e1485]: uniq
+              - text: 命令以及参数。
+          - generic [ref=e1183]:
+            - progressbar [ref=e1258]
+            - link "" [ref=e1185] [cursor=pointer]:
+              - /url: javascript:;
+              - generic [ref=e1186]: 
+            - button "完成学习" [ref=e1486] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [ref=e794]:
+      - textbox "Terminal input" [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e1191]:
+    - generic [ref=e1193] [cursor=pointer]: 
+    - generic [ref=e1194]:
+      - generic [ref=e1195]: 46:53
+      - button "延时" [ref=e1196] [cursor=pointer]
+    - generic [ref=e1197]:
+      - generic [ref=e1198]:
+        - generic [ref=e1199] [cursor=pointer]:
+          - generic [ref=e1200]: 
+          - generic [ref=e1201]: 桌面
+        - generic [ref=e1202] [cursor=pointer]:
+          - generic [ref=e1203]: 
+          - generic [ref=e1204]: 字符
+      - generic [ref=e1205] [cursor=pointer]:
+        - generic [ref=e1206]: 
+        - text: 切换界面
+    - generic [ref=e1208]:
+      - button " 关闭环境" [ref=e1209] [cursor=pointer]:
+        - generic [ref=e1210]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e1212] [cursor=pointer]:
+      - generic [ref=e1214]:
+        - generic [ref=e1215]: 
+        - text: 剪切板
+    - generic [ref=e1219] [cursor=pointer]:
+      - generic [ref=e1220]: 
+      - text: 共享桌面
+    - generic [ref=e1224] [cursor=pointer]:
+      - generic [ref=e1225]: 
+      - text: 下载代码
+    - generic [ref=e1229] [cursor=pointer]:
+      - generic [ref=e1230]: 
+      - text: 上传文件
+    - generic [ref=e1233] [cursor=pointer]:
+      - generic [ref=e1234]: 
+      - text: 桌面全屏
+    - generic [ref=e1238] [cursor=pointer]:
+      - generic [ref=e1239]: 
+      - text: 环境信息
+    - generic [ref=e1244] [cursor=pointer]:
+      - img [ref=e1245]
+      - text: SSH直连
+    - generic [ref=e1249] [cursor=pointer]:
+      - img [ref=e1250]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1251] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1255] [cursor=pointer]:
+      - generic [ref=e1256]: 
+      - text: 新手指南

@@ -1,0 +1,30 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6] [cursor=pointer]:
+        - generic [ref=e8]: 🎯
+        - generic [ref=e9]:
+          - generic [ref=e10]: 社团
+          - generic [ref=e11]: MATCH
+      - navigation [ref=e12]:
+        - link "🏠 首页" [ref=e13] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e14]: 🏠
+          - generic [ref=e15]: 首页
+        - link "📚 社团列表" [ref=e16] [cursor=pointer]:
+          - /url: /clubs
+          - generic [ref=e17]: 📚
+          - generic [ref=e18]: 社团列表
+        - link "✨ 智能匹配" [ref=e19] [cursor=pointer]:
+          - /url: /matching
+          - generic [ref=e20]: ✨
+          - generic [ref=e21]: 智能匹配
+        - link "💬 AI问答" [ref=e22] [cursor=pointer]:
+          - /url: /chat
+          - generic [ref=e23]: 💬
+          - generic [ref=e24]: AI问答
+        - link "⚙️ 管理" [ref=e25] [cursor=pointer]:
+          - /url: /admin
+          - generic [ref=e26]: ⚙️
+          - generic [ref=e27]: 管理
+  - main [ref=e28]

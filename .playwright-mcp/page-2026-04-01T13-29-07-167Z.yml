@@ -1,0 +1,136 @@
+- generic [ref=e341]:
+  - generic [ref=e343]:
+    - generic [ref=e345]:
+      - link [ref=e346] [cursor=pointer]:
+        - /url: /courses/1
+        - img [ref=e347]
+      - generic [ref=e348]: Linux 任务计划 crontab
+    - generic [ref=e349]:
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - generic [ref=e356] [cursor=pointer]: 章节
+          - generic [ref=e590] [cursor=pointer]: 步骤
+          - generic [ref=e594] [cursor=pointer]: 报告
+          - generic [ref=e598] [cursor=pointer]: 讨论
+          - generic [ref=e602] [cursor=pointer]: 学习助手
+        - generic [ref=e357]:
+          - link "常见问题" [ref=e359] [cursor=pointer]:
+            - /url: /questions/topics/28/
+            - generic "常见问题" [ref=e360]
+          - generic "纠错" [ref=e362] [cursor=pointer]
+          - generic "楼层" [ref=e364] [cursor=pointer]
+      - generic [ref=e931]:
+        - generic [ref=e932]:
+          - generic [ref=e933]:
+            - generic [ref=e934] [cursor=pointer]: 
+            - generic [ref=e935]: 三、crontab 的深入
+            - generic [ref=e936] [cursor=pointer]: 
+          - generic [ref=e938]:
+            - paragraph [ref=e1129]:
+              - text: 每个用户使用
+              - code [ref=e1130]: crontab -e
+              - text: 添加计划任务，都会在
+              - code [ref=e1131]: /var/spool/cron/crontabs
+              - text: 中添加一个该用户自己的任务文档，这样目的是为了隔离。
+            - paragraph [ref=e1132]:
+              - img "实验楼" [ref=e1133]
+            - paragraph [ref=e1134]: 如果是系统级别的定时任务，需要 root 权限执行的任务应该怎么处理？
+            - paragraph [ref=e1135]:
+              - text: 只需要使用
+              - code [ref=e1136]: sudo
+              - text: 编辑
+              - code [ref=e1137]: /etc/crontab
+              - text: 文件就可以。
+            - paragraph [ref=e1138]:
+              - code [ref=e1139]: cron
+              - text: 服务监测时间最小单位是分钟，所以
+              - code [ref=e1140]: cron
+              - text: 会每分钟去读取一次
+              - code [ref=e1141]: /etc/crontab
+              - text: 与
+              - code [ref=e1142]: /var/spool/cron/crontabs
+              - text: 里面的內容。
+            - paragraph [ref=e1143]:
+              - text: 在
+              - code [ref=e1144]: /etc
+              - text: 目录下，
+              - code [ref=e1145]: cron
+              - text: 相关的目录有下面几个：
+            - paragraph [ref=e1146]:
+              - img "实验楼" [ref=e1147]
+            - paragraph [ref=e1148]: 每个目录的作用：
+            - list [ref=e1149]:
+              - listitem [ref=e1150]:
+                - code [ref=e1151]: /etc/cron.daily
+                - text: ，目录下的脚本会每天执行一次，在每天的 6 点 25 分时运行；
+              - listitem [ref=e1152]:
+                - code [ref=e1153]: /etc/cron.hourly
+                - text: ，目录下的脚本会每个小时执行一次，在每小时的 17 分钟时运行；
+              - listitem [ref=e1154]:
+                - code [ref=e1155]: /etc/cron.monthly
+                - text: ，目录下的脚本会每月执行一次，在每月 1 号的 6 点 52 分时运行；
+              - listitem [ref=e1156]:
+                - code [ref=e1157]: /etc/cron.weekly
+                - text: ，目录下的脚本会每周执行一次，在每周第七天的 6 点 47 分时运行；
+            - paragraph [ref=e1158]: 系统默认执行时间可以根据需求进行修改。
+        - generic [ref=e952]:
+          - progressbar [ref=e1027]
+          - link "" [ref=e954] [cursor=pointer]:
+            - /url: javascript:;
+            - generic [ref=e955]: 
+          - button "下一步" [active] [ref=e1128] [cursor=pointer]
+  - generic [ref=e721]:
+    - iframe [ref=e794]:
+      - textbox "Terminal input" [ref=f2e63]
+    - textbox [ref=e725]: info ls
+  - generic [ref=e960]:
+    - generic [ref=e962] [cursor=pointer]: 
+    - generic [ref=e963]:
+      - generic [ref=e964]: 55:09
+      - button "延时" [ref=e965] [cursor=pointer]
+    - generic [ref=e966]:
+      - generic [ref=e967]:
+        - generic [ref=e968] [cursor=pointer]:
+          - generic [ref=e969]: 
+          - generic [ref=e970]: 桌面
+        - generic [ref=e971] [cursor=pointer]:
+          - generic [ref=e972]: 
+          - generic [ref=e973]: 字符
+      - generic [ref=e974] [cursor=pointer]:
+        - generic [ref=e975]: 
+        - text: 切换界面
+    - generic [ref=e977]:
+      - button " 关闭环境" [ref=e978] [cursor=pointer]:
+        - generic [ref=e979]: 
+        - text: 关闭环境
+      - text: 
+    - button " 剪切板" [ref=e981] [cursor=pointer]:
+      - generic [ref=e983]:
+        - generic [ref=e984]: 
+        - text: 剪切板
+    - generic [ref=e988] [cursor=pointer]:
+      - generic [ref=e989]: 
+      - text: 共享桌面
+    - generic [ref=e993] [cursor=pointer]:
+      - generic [ref=e994]: 
+      - text: 下载代码
+    - generic [ref=e998] [cursor=pointer]:
+      - generic [ref=e999]: 
+      - text: 上传文件
+    - generic [ref=e1002] [cursor=pointer]:
+      - generic [ref=e1003]: 
+      - text: 桌面全屏
+    - generic [ref=e1007] [cursor=pointer]:
+      - generic [ref=e1008]: 
+      - text: 环境信息
+    - generic [ref=e1013] [cursor=pointer]:
+      - img [ref=e1014]
+      - text: SSH直连
+    - generic [ref=e1018] [cursor=pointer]:
+      - img [ref=e1019]
+      - text: 保存环境
+    - link "更多会员权益" [ref=e1020] [cursor=pointer]:
+      - /url: /vip?vpbs=1
+    - generic [ref=e1024] [cursor=pointer]:
+      - generic [ref=e1025]: 
+      - text: 新手指南
