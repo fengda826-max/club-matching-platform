@@ -63,15 +63,17 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // Host frontend static files in production (after build)
 if (process.env.NODE_ENV === 'production') {
-  const frontendDist = path.join(__dirname, '../../frontend/dist')
+  const frontendDist = path.resolve(__dirname, '../../frontend/dist')
+  const indexPath = path.resolve(frontendDist, 'index.html')
   app.use(express.static(frontendDist))
 
   // SPA fallback - all non-API routes return index.html for page refresh
   app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'))
+    res.sendFile(indexPath)
   })
 
   console.log(`📦 Frontend static files hosted from: ${frontendDist}`)
+  console.log(`📄 Index HTML path: ${indexPath}`)
 }
 
 // Start server
