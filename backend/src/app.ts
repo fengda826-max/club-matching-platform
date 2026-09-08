@@ -1,11 +1,16 @@
 import cors from 'cors'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import path from 'path'
 import { env } from './lib/env'
 import { errorHandler } from './middleware/errorHandler'
 import aiRouter from './routes/ai'
 import clubsRouter from './routes/clubs'
 import matchingRouter from './routes/matching'
+import analyticsRouter from './routes/analytics'
+import { createAuthRouter } from './routes/auth'
+import intentsRouter from './routes/intents'
+import { aiRateLimit } from './middleware/rateLimits'
 
 function isAllowedOrigin(origin: string): boolean {
   return env.CORS_ORIGINS.some(allowed => allowed.endsWith('*')
@@ -23,13 +28,17 @@ export function createApp() {
     },
   }))
   app.use(express.json({ limit: '100kb' }))
+  app.use(cookieParser())
 
   app.get('/api/health', (_req, res) => {
     res.json({ success: true, data: { status: 'ok', message: 'Club matching backend is running' } })
   })
   app.use('/api/clubs', clubsRouter)
-  app.use('/api/matching', matchingRouter)
-  app.use('/api/ai', aiRouter)
+  app.use('/api/auth', createAuthRouter({ password: env.ADMIN_PASSWORD, secret: env.SESSION_SECRET, secure: env.COOKIE_SECURE }))
+  app.use('/api/intents', intentsRouter)
+  app.use('/api/analytics', analyticsRouter)
+  app.use('/api/matching', aiRateLimit, matchingRouter)
+  app.use('/api/ai', aiRateLimit, aiRouter)
 
   if (env.NODE_ENV === 'production') {
     const frontendDist = path.resolve(__dirname, '../../frontend/dist')

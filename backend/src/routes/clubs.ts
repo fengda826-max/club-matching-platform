@@ -2,9 +2,12 @@ import express from 'express'
 import { prisma } from '../lib/prisma'
 import { clubCreateSchema, clubIdSchema, clubUpdateSchema } from '../schemas/club'
 import { ClubService } from '../services/ClubService'
+import { createRequireAdmin } from '../middleware/adminAuth'
+import { env } from '../lib/env'
 
 const router = express.Router()
 const clubService = new ClubService(prisma)
+const requireAdmin = createRequireAdmin(env.SESSION_SECRET)
 
 router.get('/', async (_req, res, next) => {
   try { res.json({ success: true, data: await clubService.getAllClubs() }) }
@@ -39,23 +42,33 @@ router.get('/:id', async (req, res, next) => {
   } catch (error) { return next(error) }
 })
 
-router.post('/', async (req, res, next) => {
+router.post('/', (req, res, next) => {
+  try { res.locals.clubData = clubCreateSchema.parse(req.body); next() } catch (error) { next(error) }
+}, requireAdmin, async (_req, res, next) => {
   try {
-    const club = await clubService.createClub(clubCreateSchema.parse(req.body))
+    const club = await clubService.createClub(res.locals.clubData)
     res.status(201).json({ success: true, data: club })
   } catch (error) { next(error) }
 })
 
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', (req, res, next) => {
   try {
-    const club = await clubService.updateClub(clubIdSchema.parse(req.params.id), clubUpdateSchema.parse(req.body))
+    res.locals.clubId = clubIdSchema.parse(req.params.id)
+    res.locals.clubData = clubUpdateSchema.parse(req.body)
+    next()
+  } catch (error) { next(error) }
+}, requireAdmin, async (_req, res, next) => {
+  try {
+    const club = await clubService.updateClub(res.locals.clubId, res.locals.clubData)
     res.json({ success: true, data: club })
   } catch (error) { next(error) }
 })
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', (req, res, next) => {
+  try { res.locals.clubId = clubIdSchema.parse(req.params.id); next() } catch (error) { next(error) }
+}, requireAdmin, async (_req, res, next) => {
   try {
-    const club = await clubService.deleteClub(clubIdSchema.parse(req.params.id))
+    const club = await clubService.deleteClub(res.locals.clubId)
     res.json({ success: true, data: club })
   } catch (error) { next(error) }
 })

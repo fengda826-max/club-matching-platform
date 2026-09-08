@@ -10,6 +10,7 @@ import { AIRequestLogger } from '../services/AIRequestLogger'
 import { AIService } from '../services/AIService'
 import { ClubService } from '../services/ClubService'
 import { writeSse } from '../utils/sse'
+import { createRequireAdmin } from '../middleware/adminAuth'
 
 type Dependencies = {
   ai: AIService
@@ -34,6 +35,7 @@ async function defaultDependencies(): Promise<Dependencies> {
 
 export function createAiRouter(getDependencies: DependencyFactory = defaultDependencies): Router {
   const router = Router()
+  const requireAdmin = createRequireAdmin(env.SESSION_SECRET)
 
   router.get('/health', async (_req, res, next) => {
     try {
@@ -85,14 +87,14 @@ export function createAiRouter(getDependencies: DependencyFactory = defaultDepen
     } catch (error) { next(error) }
   })
 
-  router.post('/generate-description', async (req, res, next) => {
+  router.post('/generate-description', requireAdmin, async (req, res, next) => {
     try {
       const { ai } = await getDependencies()
       res.json({ success: true, data: { description: await ai.generateDescription(req.body.name, req.body.category) } })
     } catch (error) { next(error) }
   })
 
-  router.post('/suggest-tags', async (req, res, next) => {
+  router.post('/suggest-tags', requireAdmin, async (req, res, next) => {
     try {
       const { ai } = await getDependencies()
       res.json({ success: true, data: { tags: await ai.suggestTags(req.body.name, req.body.category, req.body.description) } })
