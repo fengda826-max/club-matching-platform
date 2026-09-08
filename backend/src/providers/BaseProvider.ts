@@ -1,5 +1,5 @@
-import type { AIProvider, AIConfig, ProviderInfo, AIProviderId } from './types'
-import { AIConfigError } from './errors'
+import type { z } from 'zod'
+import type { AIProvider, AICompletion, AIConfig, ProviderInfo } from './types'
 
 /**
  * 基础提供商抽象类
@@ -13,7 +13,7 @@ export abstract class BaseProvider implements AIProvider {
   }
 
   abstract initialize(): Promise<void>
-  abstract generateStructured<T>(systemPrompt: string, userPrompt: string, maxTokens: number): Promise<T>
+  abstract generateStructured<T>(schema: z.ZodType<T>, systemPrompt: string, userPrompt: string, maxTokens: number, signal?: AbortSignal): Promise<AICompletion<T>>
   abstract chat(request: any): AsyncGenerator<string, void, unknown>
   abstract chatComplete(request: any): Promise<string>
   abstract checkHealth(): Promise<boolean>

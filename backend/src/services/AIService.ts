@@ -1,5 +1,6 @@
 import type { AIProvider, ChatMessage, ChatRequest } from '../providers/types'
 import { Club } from '@prisma/client'
+import { z } from 'zod'
 
 /**
  * User preference for matching
@@ -26,6 +27,17 @@ export type MatchResultItem = {
 export type MatchResult = {
   matches: MatchResultItem[]
 }
+
+const matchResultSchema = z.object({
+  matches: z.array(z.object({
+    clubId: z.number().int(),
+    clubName: z.string(),
+    matchScore: z.number().min(0).max(100),
+    matchReason: z.string(),
+  })).max(5),
+})
+
+const tagResultSchema = z.object({ tags: z.array(z.string().min(1)).min(1).max(8) })
 
 /**
  * AI Service - handles all AI business logic
@@ -61,11 +73,13 @@ export class AIService {
 可选社团列表:
 ${clubs.map(c => `- ID: ${c.id}, 名称: ${c.name}, 分类: ${c.category}, 描述: ${c.description}, 标签: ${c.tags}`).join('\n')}`
 
-    return this.provider.generateStructured<MatchResult>(
+    const completion = await this.provider.generateStructured(
+      matchResultSchema,
       systemPrompt,
       userPrompt,
       1000
     )
+    return completion.data
   }
 
   /**
@@ -178,13 +192,14 @@ ${clubs.map(c => `- ${c.name} (${c.category}): ${c.description}。标签: ${c.ta
 
 请推荐标签:`
 
-    const result = await this.provider.generateStructured<{tags: string[]}>(
+    const result = await this.provider.generateStructured(
+      tagResultSchema,
       systemPrompt,
       userPrompt,
       200
     )
 
-    return result.tags.slice(0, 8)
+    return result.data.tags.slice(0, 8)
   }
 
   /**

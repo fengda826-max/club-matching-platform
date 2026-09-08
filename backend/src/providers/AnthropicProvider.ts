@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
-import type { AIProvider, AIConfig, ProviderInfo, ChatRequest } from './types'
+import type { z } from 'zod'
+import type { AIProvider, AICompletion, AIConfig, ProviderInfo, ChatRequest } from './types'
 import { BaseProvider } from './BaseProvider'
 import { AIError, AIConfigError } from './errors'
 
@@ -28,15 +29,18 @@ export class AnthropicProvider extends BaseProvider implements AIProvider {
   }
 
   async generateStructured<T>(
+    schema: z.ZodType<T>,
     systemPrompt: string,
     userPrompt: string,
-    maxTokens: number
-  ): Promise<T> {
+    maxTokens: number,
+    signal?: AbortSignal,
+  ): Promise<AICompletion<T>> {
     if (!this.client) {
       throw new AIConfigError('Client not initialized', 'anthropic')
     }
 
     try {
+      const startedAt = Date.now()
       const response = await this.client.messages.create({
         model: this.config.model || this.defaultModel,
         system: systemPrompt,
@@ -44,12 +48,21 @@ export class AnthropicProvider extends BaseProvider implements AIProvider {
           { role: 'user', content: userPrompt }
         ],
         max_tokens: maxTokens,
-        temperature: this.config.temperature || 0.7,
-      })
+        temperature: this.config.temperature ?? 0.7,
+      }, { signal })
 
       const content = response.content[0]
       if (content && content.type === 'text') {
-        return this.extractJson(content.text) as T
+        return {
+          data: schema.parse(this.extractJson(content.text)),
+          usage: {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+          },
+          provider: 'anthropic',
+          model: this.config.model || this.defaultModel,
+          durationMs: Date.now() - startedAt,
+        }
       }
 
       throw new AIError('INVALID_RESPONSE', 'No text content in response', 'anthropic')
@@ -83,10 +96,10 @@ export class AnthropicProvider extends BaseProvider implements AIProvider {
         model: this.config.model || this.defaultModel,
         system: systemContent,
         messages: userMessages,
-        max_tokens: request.maxTokens || 1000,
-        temperature: request.temperature || this.config.temperature || 0.7,
+        max_tokens: request.maxTokens ?? 1000,
+        temperature: request.temperature ?? this.config.temperature ?? 0.7,
         stream: true,
-      })
+      }, { signal: request.signal })
 
       for await (const chunk of stream) {
         if (chunk.type === 'content_block_delta') {
@@ -125,9 +138,9 @@ export class AnthropicProvider extends BaseProvider implements AIProvider {
         model: this.config.model || this.defaultModel,
         system: systemContent,
         messages: userMessages,
-        max_tokens: request.maxTokens || 1000,
-        temperature: request.temperature || this.config.temperature || 0.7,
-      })
+        max_tokens: request.maxTokens ?? 1000,
+        temperature: request.temperature ?? this.config.temperature ?? 0.7,
+      }, { signal: request.signal })
 
       const content = response.content[0]
       if (content && content.type === 'text') {
@@ -142,19 +155,7 @@ export class AnthropicProvider extends BaseProvider implements AIProvider {
   }
 
   async checkHealth(): Promise<boolean> {
-    if (!this.client) return false
-
-    try {
-      // Simple request to check API key validity
-      await this.client.messages.create({
-        model: this.config.model || this.defaultModel,
-        messages: [{ role: 'user', content: 'Hello' }],
-        max_tokens: 5,
-      })
-      return true
-    } catch (e) {
-      return false
-    }
+    return this.client !== null
   }
 
   getProviderInfo(): ProviderInfo {

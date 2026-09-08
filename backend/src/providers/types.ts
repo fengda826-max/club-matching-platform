@@ -1,3 +1,5 @@
+import type { z } from 'zod'
+
 /**
  * 支持的提供商ID
  */
@@ -32,6 +34,20 @@ export interface ChatRequest {
   systemPrompt?: string
   maxTokens?: number
   temperature?: number
+  signal?: AbortSignal
+}
+
+export interface AIUsage {
+  inputTokens?: number
+  outputTokens?: number
+}
+
+export interface AICompletion<T> {
+  data: T
+  usage: AIUsage
+  provider: string
+  model: string
+  durationMs: number
 }
 
 /**
@@ -62,10 +78,12 @@ export interface AIProvider {
    * @returns 解析后的JSON对象
    */
   generateStructured<T>(
+    schema: z.ZodType<T>,
     systemPrompt: string,
     userPrompt: string,
-    maxTokens: number
-  ): Promise<T>
+    maxTokens: number,
+    signal?: AbortSignal,
+  ): Promise<AICompletion<T>>
 
   /**
    * 流式聊天对话

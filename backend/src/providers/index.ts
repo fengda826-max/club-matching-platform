@@ -21,7 +21,7 @@ export function createProvider(config: AIConfig): AIProvider {
  * 从环境变量加载AI配置
  */
 export function loadConfigFromEnv(): AIConfig {
-  const provider = (process.env.AI_PROVIDER as any) || 'anthropic'
+  const provider = (process.env.AI_PROVIDER as AIConfig['provider']) || 'openai-compat'
   const apiKey = process.env.AI_API_KEY || ''
   const baseURL = process.env.AI_BASE_URL
   const model = process.env.AI_MODEL

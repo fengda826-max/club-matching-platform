@@ -9,6 +9,7 @@ export type AIErrorCode =
   | 'CONTEXT_OVERFLOW'
   | 'INVALID_RESPONSE'
   | 'NETWORK_ERROR'
+  | 'TIMEOUT'
 
 /**
  * 统一的AI错误
