@@ -5,6 +5,7 @@ import { env } from './lib/env'
 import { errorHandler } from './middleware/errorHandler'
 import aiRouter from './routes/ai'
 import clubsRouter from './routes/clubs'
+import matchingRouter from './routes/matching'
 
 function isAllowedOrigin(origin: string): boolean {
   return env.CORS_ORIGINS.some(allowed => allowed.endsWith('*')
@@ -27,6 +28,7 @@ export function createApp() {
     res.json({ success: true, data: { status: 'ok', message: 'Club matching backend is running' } })
   })
   app.use('/api/clubs', clubsRouter)
+  app.use('/api/matching', matchingRouter)
   app.use('/api/ai', aiRouter)
 
   if (env.NODE_ENV === 'production') {
