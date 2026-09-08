@@ -4,7 +4,8 @@ import { ElMessage } from 'element-plus'
 import { useClubsStore } from '@/stores/clubs'
 import { useUserStore } from '@/stores/user'
 import { apiClient, type ChatMessage as BackendChatMessage } from '@/api/client'
-import type { ChatMessage } from '@/types'
+import { streamChat } from '@/api/sse'
+import AnswerSources from '@/components/chat/AnswerSources.vue'
 
 const clubsStore = useClubsStore()
 const userStore = useUserStore()
@@ -12,6 +13,7 @@ const userStore = useUserStore()
 const inputMessage = ref('')
 const isLoading = ref(false)
 const chatContainer = ref<HTMLElement | null>(null)
+const activeController = ref<AbortController | null>(null)
 
 const backendAvailable = ref(true)
 const messages = computed(() => userStore.chatHistory)
@@ -73,26 +75,37 @@ const sendMessage = async () => {
 
   userStore.addUserMessage(message)
   inputMessage.value = ''
-
   isLoading.value = true
+  const assistantIndex = userStore.startAssistantMessage()
+  const controller = new AbortController()
+  activeController.value = controller
 
   try {
     // Convert to backend format
-    const history: BackendChatMessage[] = userStore.chatHistory.slice(0, -1).map(msg => ({
+    const history: BackendChatMessage[] = userStore.chatHistory.slice(0, -2).map(msg => ({
       role: msg.role,
       content: msg.content,
     }))
-
-    const response = await apiClient.ai.chat(message, history)
-    userStore.addAssistantMessage(response.response)
+    await streamChat({ message, history }, {
+      metadata: data => userStore.updateAssistantMetadata(assistantIndex, { sources: data.sources, model: data.model }),
+      chunk: data => userStore.appendAssistantChunk(assistantIndex, data.text),
+      usage: data => userStore.updateAssistantMetadata(assistantIndex, { durationMs: data.durationMs }),
+      error: data => userStore.updateAssistantMetadata(assistantIndex, { error: data.message }),
+    }, controller.signal)
   } catch (error) {
-    console.error('Error sending message:', error)
-    ElMessage.error('发送消息失败，请检查后端服务是否正常运行')
-    userStore.addAssistantMessage('抱歉，我暂时无法回答你的问题，请稍后再试。')
+    if (controller.signal.aborted) {
+      userStore.updateAssistantMetadata(assistantIndex, { error: '已停止生成' })
+    } else {
+      userStore.updateAssistantMetadata(assistantIndex, { error: error instanceof Error ? error.message : '回答失败，请稍后重试' })
+      if (!userStore.chatHistory[assistantIndex]?.content) userStore.appendAssistantChunk(assistantIndex, '抱歉，暂时无法生成回答。')
+    }
   } finally {
     isLoading.value = false
+    activeController.value = null
   }
 }
+
+const cancelMessage = () => activeController.value?.abort()
 
 const clearChat = () => {
   userStore.clearChatHistory()
@@ -185,22 +198,14 @@ const useSuggestedQuestion = (question: string) => {
                   </span>
                 </div>
                 <div class="message-text">{{ msg.content }}</div>
+                <AnswerSources v-if="msg.role === 'assistant' && msg.sources" :sources="msg.sources" />
+                <div v-if="msg.role === 'assistant' && (msg.model || msg.durationMs !== undefined)" class="message-meta">
+                  {{ msg.model || '模型' }}<template v-if="msg.durationMs !== undefined"> · {{ msg.durationMs }} ms</template>
+                </div>
+                <div v-if="msg.error" class="message-error">{{ msg.error }}</div>
               </div>
             </div>
 
-            <!-- Loading Indicator -->
-            <div v-if="isLoading" class="message assistant loading">
-              <div class="message-content">
-                <div class="message-header">
-                  <span class="message-icon">🤖</span>
-                  <span class="message-role">AI助手</span>
-                </div>
-                <div class="message-text loading-text">
-                  <span class="loading-pulse"></span>
-                  正在思考...
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -220,6 +225,7 @@ const useSuggestedQuestion = (question: string) => {
             </button>
           </div>
           <div class="input-actions">
+            <button v-if="isLoading" class="action-button secondary" @click="cancelMessage">停止生成</button>
             <button
               v-if="messages.length > 0"
               class="action-button secondary"
@@ -616,6 +622,9 @@ const useSuggestedQuestion = (question: string) => {
   line-height: 1.7;
   word-break: break-word;
 }
+
+.message-meta { margin-top: 10px; font-size: 12px; color: var(--color-gray-600); }
+.message-error { margin-top: 10px; font-size: 13px; color: var(--color-primary-dark); }
 
 .message-text.loading-text {
   display: flex;

@@ -28,6 +28,10 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  sources?: Array<{ clubId: number; name: string }>
+  model?: string
+  durationMs?: number
+  error?: string
 }
 
 export interface ClubCategory {

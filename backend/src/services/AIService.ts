@@ -49,6 +49,36 @@ export class AIService {
     this.provider = provider
   }
 
+  groundedChat(userMessage: string, conversationHistory: ChatMessage[], clubs: Club[], signal?: AbortSignal) {
+    const relevantClubs = this.retrieveClubs(userMessage, clubs)
+    const sources = relevantClubs.map(club => ({ clubId: club.id, name: club.name }))
+    const systemPrompt = `你是校园社团招新问答助手。只能依据下方资料回答；资料没有说明时，要明确说“现有资料未说明”，不得编造。回答简洁，并优先帮助学生做选择。\n\n社团资料:\n${relevantClubs.map(c => `- ID ${c.id}｜${c.name}｜${c.category}｜${c.description}｜标签:${c.tags}｜要求:${c.requirements}｜时间:${c.activityTime}｜校区:${c.campus}｜费用:${c.fee}元｜每周:${c.weeklyHours}小时`).join('\n')}`
+    const stream = this.provider.chat({
+      messages: [...conversationHistory, { role: 'user', content: userMessage }],
+      systemPrompt,
+      maxTokens: 1000,
+      temperature: 0.3,
+      signal,
+    })
+    return { stream, sources, model: this.provider.getProviderInfo().model }
+  }
+
+  private retrieveClubs(question: string, clubs: Club[]): Club[] {
+    const normalized = question.toLocaleLowerCase('zh-CN')
+    const compact = normalized.replace(/\s+/g, '')
+    const tokens = new Set<string>()
+    normalized.match(/[a-z0-9]+/g)?.forEach(token => tokens.add(token))
+    for (let index = 0; index < compact.length - 1; index += 1) tokens.add(compact.slice(index, index + 2))
+    const ranked = clubs.map(club => {
+      const searchable = [club.name, club.category, club.tags, club.description, club.requirements, club.campus, club.activityTime]
+        .join(' ').toLocaleLowerCase('zh-CN')
+      const score = Array.from(tokens).reduce((sum, token) => sum + (searchable.includes(token) ? 1 : 0), 0)
+      return { club, score }
+    }).filter(item => item.score > 0).sort((a, b) => b.score - a.score || a.club.id - b.club.id)
+    const selected = ranked.slice(0, 5).map(item => item.club)
+    return selected.length > 0 ? selected : clubs.slice().sort((a, b) => a.id - b.id).slice(0, 5)
+  }
+
   /**
    * Generate club matching based on user preferences
    */

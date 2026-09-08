@@ -6,7 +6,7 @@ export interface ApiResponse<T> {
 }
 
 // Backend base URL
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api'
+export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api'
 
 async function request<T>(endpoint: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`, {

@@ -77,6 +77,21 @@ export const useUserStore = defineStore('user', {
       })
     },
 
+    startAssistantMessage() {
+      this.chatHistory.push({ role: 'assistant', content: '', timestamp: new Date() })
+      return this.chatHistory.length - 1
+    },
+
+    appendAssistantChunk(index: number, chunk: string) {
+      const message = this.chatHistory[index]
+      if (message?.role === 'assistant') message.content += chunk
+    },
+
+    updateAssistantMetadata(index: number, metadata: Partial<ChatMessage>) {
+      const message = this.chatHistory[index]
+      if (message?.role === 'assistant') Object.assign(message, metadata)
+    },
+
     addUserMessage(content: string) {
       this.chatHistory.push({
         role: 'user',
