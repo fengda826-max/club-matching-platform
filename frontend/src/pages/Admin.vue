@@ -126,7 +126,7 @@
 	  }
 	}
 
-	const handleAddClub = () => {
+	const handleAddClub = async () => {
 	  if (!newClub.value.name || !newClub.value.category || !newClub.value.description) {
 	    ElMessage.warning('请填写必填信息')
 	    return
@@ -144,10 +144,15 @@
 	    aiGenerated: true,
 	  }
 
-	  clubsStore.addClub(club)
-	  showAddDialog.value = false
-	  resetForm()
-	  ElMessage.success('社团添加成功！')
+	  try {
+	    await clubsStore.addClub(club)
+	    showAddDialog.value = false
+	    resetForm()
+	    ElMessage.success('社团添加成功！')
+	  } catch (error) {
+	    console.error('Failed to add club:', error)
+	    ElMessage.error('社团添加失败，请稍后重试')
+	  }
 	}
 
 	const openEditDialog = (club: Club) => {
@@ -155,12 +160,17 @@
 	  showEditDialog.value = true
 	}
 
-	const handleUpdateClub = () => {
+	const handleUpdateClub = async () => {
 	  if (editingClub.value) {
-	    clubsStore.updateClub(editingClub.value.id, editingClub.value)
-	    showEditDialog.value = false
-	    editingClub.value = null
-	    ElMessage.success('社团更新成功！')
+	    try {
+	      await clubsStore.updateClub(editingClub.value.id, editingClub.value)
+	      showEditDialog.value = false
+	      editingClub.value = null
+	      ElMessage.success('社团更新成功！')
+	    } catch (error) {
+	      console.error('Failed to update club:', error)
+	      ElMessage.error('社团更新失败，请稍后重试')
+	    }
 	  }
 	}
 
@@ -170,10 +180,13 @@
 	      type: 'warning',
 	    })
 
-	    clubsStore.deleteClub(club.id)
+	    await clubsStore.deleteClub(club.id)
 	    ElMessage.success('社团删除成功！')
-	  } catch {
-	    // User cancelled
+	  } catch (error) {
+	    if (error !== 'cancel' && error !== 'close') {
+	      console.error('Failed to delete club:', error)
+	      ElMessage.error('社团删除失败，请稍后重试')
+	    }
 	  }
 	}
 

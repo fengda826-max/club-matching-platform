@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
-    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "build": "npm run build --workspace frontend && npm run build --workspace backend",
     "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev"

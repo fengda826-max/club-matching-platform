@@ -8,36 +8,32 @@ export interface ApiResponse<T> {
 // Backend base URL
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api'
 
-// Generic GET request
-async function get<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${BASE_URL}${endpoint}`)
-  const result = await response.json() as ApiResponse<T>
-
-  if (!result.success || !result.data) {
-    throw new Error(result.error || 'Request failed')
-  }
-
-  return result.data
-}
-
-// Generic POST request
-async function post<T>(endpoint: string, body?: any): Promise<T> {
+async function request<T>(endpoint: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
-    method: 'POST',
+    credentials: 'include',
+    ...init,
     headers: {
-      'Content-Type': 'application/json',
+      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+      ...init.headers,
     },
-    body: JSON.stringify(body),
   })
-
   const result = await response.json() as ApiResponse<T>
-
-  if (!result.success || !result.data) {
-    throw new Error(result.error || 'Request failed')
+  if (!response.ok || !result.success || result.data === undefined) {
+    throw new Error(result.error || `Request failed with ${response.status}`)
   }
-
   return result.data
 }
+
+const get = <T>(endpoint: string) => request<T>(endpoint)
+const post = <T>(endpoint: string, body?: unknown) => request<T>(endpoint, {
+  method: 'POST',
+  body: JSON.stringify(body),
+})
+const put = <T>(endpoint: string, body?: unknown) => request<T>(endpoint, {
+  method: 'PUT',
+  body: JSON.stringify(body),
+})
+const del = <T>(endpoint: string) => request<T>(endpoint, { method: 'DELETE' })
 
 // Club types (matches backend)
 export type Club = {
@@ -94,8 +90,8 @@ export const apiClient = {
     getAll: () => get<Club[]>('/clubs'),
     getById: (id: number) => get<Club>(`/clubs/${id}`),
     create: (data: Omit<Club, 'id' | 'createdAt' | 'updatedAt'>) => post<Club>('/clubs', data),
-    update: (id: number, data: Partial<Club>) => post<Club>(`/clubs/${id}`, data),
-    delete: (id: number) => get<Club>(`/clubs/${id}`),
+    update: (id: number, data: Partial<Club>) => put<Club>(`/clubs/${id}`, data),
+    delete: (id: number) => del<Club>(`/clubs/${id}`),
     search: (keyword: string) => get<Club[]>(`/clubs/search/${keyword}`),
     filterByCategory: (category: string) => get<Club[]>(`/clubs/category/${category}`),
     getAllTags: () => get<string[]>('/clubs/tags/all'),
@@ -107,16 +103,6 @@ export const apiClient = {
     health: () => get<{healthy: boolean, provider: any}>('/ai/health'),
     matching: (preferences: UserPreference) => post<MatchResult>('/ai/matching', {preferences}),
     chat: (message: string, history: ChatMessage[]) => post<{response: string}>('/ai/chat', {message, history}),
-    chatStream: (message: string, history: ChatMessage[]) => {
-      // Returns a ReadableStream for SSE
-      return new Response(`${BASE_URL}/ai/chat/stream`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({message, history}),
-      }).body
-    },
     generateDescription: (name: string, category: string) => post<{description: string}>('/ai/generate-description', {name, category}),
     suggestTags: (name: string, category: string, description: string) => post<string[]>('/ai/suggest-tags', {name, category, description}),
   },
