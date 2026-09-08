@@ -12,6 +12,12 @@ export type ClubDTO = {
   memberCount: number
   contact: string
   tags: string
+  activityTime: string
+  weeklyHours: number
+  campus: string
+  fee: number
+  skillRequirement: string
+  isRecruiting: boolean
 }
 
 /**
@@ -55,6 +61,12 @@ export class ClubService {
         memberCount: data.memberCount,
         contact: data.contact,
         tags: data.tags,
+        activityTime: data.activityTime,
+        weeklyHours: data.weeklyHours,
+        campus: data.campus,
+        fee: data.fee,
+        skillRequirement: data.skillRequirement,
+        isRecruiting: data.isRecruiting,
       },
     })
   }

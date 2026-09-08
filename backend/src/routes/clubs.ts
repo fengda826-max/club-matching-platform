@@ -1,136 +1,63 @@
 import express from 'express'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../lib/prisma'
+import { clubCreateSchema, clubIdSchema, clubUpdateSchema } from '../schemas/club'
 import { ClubService } from '../services/ClubService'
 
 const router = express.Router()
-const prisma = new PrismaClient()
 const clubService = new ClubService(prisma)
 
-/**
- * Get all clubs
- * GET /api/clubs
- */
-router.get('/', async (req, res, next) => {
-  try {
-    const clubs = await clubService.getAllClubs()
-    res.json({ success: true, data: clubs })
-  } catch (err) {
-    next(err)
-  }
+router.get('/', async (_req, res, next) => {
+  try { res.json({ success: true, data: await clubService.getAllClubs() }) }
+  catch (error) { next(error) }
 })
 
-/**
- * Get single club by ID
- * GET /api/clubs/:id
- */
+router.get('/statistics/summary', async (_req, res, next) => {
+  try { res.json({ success: true, data: await clubService.getStatistics() }) }
+  catch (error) { next(error) }
+})
+
+router.get('/search/:keyword', async (req, res, next) => {
+  try { res.json({ success: true, data: await clubService.searchClubs(req.params.keyword.slice(0, 100)) }) }
+  catch (error) { next(error) }
+})
+
+router.get('/tags/all', async (_req, res, next) => {
+  try { res.json({ success: true, data: await clubService.getAllTags() }) }
+  catch (error) { next(error) }
+})
+
+router.get('/category/:category', async (req, res, next) => {
+  try { res.json({ success: true, data: await clubService.filterByCategory(req.params.category.slice(0, 30)) }) }
+  catch (error) { next(error) }
+})
+
 router.get('/:id', async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id, 10)
-    const club = await clubService.getClubById(id)
-    if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
-    }
-    res.json({ success: true, data: club })
-  } catch (err) {
-    next(err)
-  }
+    const club = await clubService.getClubById(clubIdSchema.parse(req.params.id))
+    if (!club) return res.status(404).json({ success: false, error: 'NOT_FOUND', message: '社团不存在' })
+    return res.json({ success: true, data: club })
+  } catch (error) { return next(error) }
 })
 
-/**
- * Create new club
- * POST /api/clubs
- */
 router.post('/', async (req, res, next) => {
   try {
-    const data = req.body
-    const club = await clubService.createClub(data)
+    const club = await clubService.createClub(clubCreateSchema.parse(req.body))
     res.status(201).json({ success: true, data: club })
-  } catch (err) {
-    next(err)
-  }
+  } catch (error) { next(error) }
 })
 
-/**
- * Update existing club
- * PUT /api/clubs/:id
- */
 router.put('/:id', async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id, 10)
-    const data = req.body
-    const club = await clubService.updateClub(id, data)
+    const club = await clubService.updateClub(clubIdSchema.parse(req.params.id), clubUpdateSchema.parse(req.body))
     res.json({ success: true, data: club })
-  } catch (err) {
-    next(err)
-  }
+  } catch (error) { next(error) }
 })
 
-/**
- * Delete club
- * DELETE /api/clubs/:id
- */
 router.delete('/:id', async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id, 10)
-    const club = await clubService.deleteClub(id)
+    const club = await clubService.deleteClub(clubIdSchema.parse(req.params.id))
     res.json({ success: true, data: club })
-  } catch (err) {
-    next(err)
-  }
-})
-
-/**
- * Get statistics
- * GET /api/clubs/statistics/summary
- */
-router.get('/statistics/summary', async (req, res, next) => {
-  try {
-    const stats = await clubService.getStatistics()
-    res.json({ success: true, data: stats })
-  } catch (err) {
-    next(err)
-  }
-})
-
-/**
- * Search clubs
- * GET /api/clubs/search/:keyword
- */
-router.get('/search/:keyword', async (req, res, next) => {
-  try {
-    const keyword = req.params.keyword
-    const clubs = await clubService.searchClubs(keyword)
-    res.json({ success: true, data: clubs })
-  } catch (err) {
-    next(err)
-  }
-})
-
-/**
- * Get all tags
- * GET /api/clubs/tags/all
- */
-router.get('/tags/all', async (req, res, next) => {
-  try {
-    const tags = await clubService.getAllTags()
-    res.json({ success: true, data: tags })
-  } catch (err) {
-    next(err)
-  }
-})
-
-/**
- * Filter by category
- * GET /api/clubs/category/:category
- */
-router.get('/category/:category', async (req, res, next) => {
-  try {
-    const category = req.params.category
-    const clubs = await clubService.filterByCategory(category)
-    res.json({ success: true, data: clubs })
-  } catch (err) {
-    next(err)
-  }
+  } catch (error) { next(error) }
 })
 
 export default router

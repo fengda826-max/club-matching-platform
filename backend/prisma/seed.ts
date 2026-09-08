@@ -96,6 +96,26 @@ const sampleClubs = [
   },
 ]
 
+const operationalProfiles: Record<string, {
+  activityTime: string
+  weeklyHours: number
+  campus: string
+  fee: number
+  skillRequirement: 'beginner' | 'intermediate' | 'advanced' | 'expert'
+  isRecruiting: boolean
+}> = {
+  编程俱乐部: { activityTime: '周六 14:00-16:00', weeklyHours: 3, campus: '南校区', fee: 0, skillRequirement: 'beginner', isRecruiting: true },
+  人工智能社团: { activityTime: '周三 19:00-21:00', weeklyHours: 4, campus: '南校区', fee: 0, skillRequirement: 'intermediate', isRecruiting: true },
+  篮球协会: { activityTime: '周二、周四 18:00-20:00', weeklyHours: 5, campus: '东区体育馆', fee: 50, skillRequirement: 'beginner', isRecruiting: true },
+  摄影协会: { activityTime: '周日 09:00-12:00', weeklyHours: 3, campus: '全校区', fee: 100, skillRequirement: 'beginner', isRecruiting: true },
+  辩论社: { activityTime: '周五 19:00-21:00', weeklyHours: 4, campus: '北校区', fee: 0, skillRequirement: 'beginner', isRecruiting: true },
+  吉他社: { activityTime: '周六 19:00-21:00', weeklyHours: 3, campus: '北校区', fee: 80, skillRequirement: 'beginner', isRecruiting: true },
+  足球协会: { activityTime: '周三、周日 16:00-18:00', weeklyHours: 5, campus: '东区足球场', fee: 50, skillRequirement: 'beginner', isRecruiting: true },
+  英语角: { activityTime: '周四 19:00-20:30', weeklyHours: 2, campus: '主校区', fee: 0, skillRequirement: 'beginner', isRecruiting: true },
+  舞蹈协会: { activityTime: '周二、周六 19:00-21:00', weeklyHours: 4, campus: '艺术中心', fee: 120, skillRequirement: 'beginner', isRecruiting: true },
+  网络安全社团: { activityTime: '周六 09:00-12:00', weeklyHours: 5, campus: '南校区', fee: 0, skillRequirement: 'intermediate', isRecruiting: true },
+}
+
 async function main() {
   console.log('Start seeding...')
 
@@ -106,7 +126,7 @@ async function main() {
   // Insert sample data
   for (const club of sampleClubs) {
     await prisma.club.create({
-      data: club,
+      data: { ...club, ...operationalProfiles[club.name] },
     })
   }
 

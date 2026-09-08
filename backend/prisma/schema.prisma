@@ -8,14 +8,51 @@ datasource db {
 }
 
 model Club {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  category    String
-  description String
-  requirements String
-  memberCount Int
-  contact     String
-  tags        String   // Comma-separated tags
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  name             String   @unique
+  category         String
+  description      String
+  requirements     String
+  memberCount      Int
+  contact          String
+  tags             String   // Comma-separated tags in the PoC
+  activityTime     String   @default("")
+  weeklyHours      Int      @default(0)
+  campus           String   @default("")
+  fee              Int      @default(0)
+  skillRequirement String   @default("beginner")
+  isRecruiting     Boolean  @default(true)
+  intents          RecruitmentIntent[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model RecruitmentIntent {
+  id         Int      @id @default(autoincrement())
+  clubId     Int
+  source     String
+  matchScore Int?
+  sessionId  String
+  createdAt  DateTime @default(now())
+  club       Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, sessionId])
+  @@index([createdAt])
+}
+
+model AIRequestLog {
+  id           Int      @id @default(autoincrement())
+  useCase      String
+  provider     String
+  model        String
+  status       String
+  durationMs   Int
+  inputTokens  Int?
+  outputTokens Int?
+  fallbackUsed Boolean  @default(false)
+  errorCode    String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([useCase, status])
 }

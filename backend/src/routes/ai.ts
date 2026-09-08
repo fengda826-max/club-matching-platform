@@ -1,15 +1,14 @@
 import express from 'express'
-import { PrismaClient } from '@prisma/client'
 import { createProvider, loadConfigFromEnv } from '../providers'
 import { AIService } from '../services/AIService'
 import { ClubService } from '../services/ClubService'
+import { prisma } from '../lib/prisma'
 
 const router = express.Router()
 
 // Lazy initialization
 let aiService: AIService | null = null
 let clubService: ClubService | null = null
-const prisma = new PrismaClient()
 
 async function getAIService(): Promise<AIService> {
   if (!aiService) {
