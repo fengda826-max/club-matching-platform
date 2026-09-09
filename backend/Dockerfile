@@ -1,4 +1,9 @@
-FROM node:20-bookworm-slim AS build
+FROM node:20-bookworm-slim AS base
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM base AS build
 WORKDIR /workspace
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package.json
@@ -7,7 +12,7 @@ RUN npm ci
 COPY backend backend
 RUN npm exec --workspace backend prisma generate && npm run build --workspace backend
 
-FROM node:20-bookworm-slim AS runtime
+FROM base AS runtime
 ENV NODE_ENV=production
 WORKDIR /workspace
 COPY --from=build /workspace/node_modules ./node_modules
