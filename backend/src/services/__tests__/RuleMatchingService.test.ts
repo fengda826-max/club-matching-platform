@@ -71,4 +71,11 @@ describe('RuleMatchingService', () => {
     const openPreference = { ...preference, availableTimes: [], campus: undefined, maxWeeklyHours: undefined, maxFee: undefined }
     expect(service.match(openPreference, [club])[0].dimensions.schedule).toBe(10)
   })
+
+  it('treats the weekend preference as either Saturday or Sunday', () => {
+    const weekendPreference = { ...preference, availableTimes: ['周末'] }
+    expect(service.match(weekendPreference, [club])).toHaveLength(1)
+    expect(service.match(weekendPreference, [{ ...club, activityTime: '周日 09:00-11:00' }])).toHaveLength(1)
+    expect(service.match(weekendPreference, [{ ...club, activityTime: '周三 19:00-21:00' }])).toEqual([])
+  })
 })

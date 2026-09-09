@@ -2,7 +2,6 @@ import { randomUUID } from 'crypto'
 import { Router } from 'express'
 import { env } from '../lib/env'
 import { prisma } from '../lib/prisma'
-import { AppError } from '../middleware/errorHandler'
 import { createProvider } from '../providers'
 import { AIError } from '../providers/errors'
 import { chatRequestSchema } from '../schemas/chat'
@@ -53,16 +52,48 @@ export function createAiRouter(getDependencies: DependencyFactory = defaultDepen
     try {
       const input = chatRequestSchema.parse(req.body)
       const { ai, clubs, logger } = await getDependencies()
+      const allClubs = await clubs.getAllClubs()
       const info = ai.getProviderInfo?.()
-      if (info && !info.configured) throw new AppError(503, 'AI_UNAVAILABLE', '问答模型尚未配置')
-      const grounded = ai.groundedChat(input.message, input.history, await clubs.getAllClubs(), controller.signal)
+      if (info && !info.configured) {
+        const fallback = ai.getGroundedFallback(input.message, allClubs)
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive', 'X-Accel-Buffering': 'no',
+        })
+        streamStarted = true
+        writeSse(res, 'metadata', { requestId: randomUUID(), model: fallback.model, sources: fallback.sources })
+        writeSse(res, 'chunk', { text: fallback.text })
+        const durationMs = Date.now() - startedAt
+        writeSse(res, 'usage', { durationMs })
+        writeSse(res, 'done', {})
+        res.end()
+        await logger.record({ useCase: 'chat', provider: info.id, model: fallback.model, status: 'fallback', durationMs, fallbackUsed: true, errorCode: 'UNCONFIGURED' })
+        return
+      }
+      const grounded = ai.groundedChat(input.message, input.history, allClubs, controller.signal)
       res.writeHead(200, {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive', 'X-Accel-Buffering': 'no',
       })
       streamStarted = true
       writeSse(res, 'metadata', { requestId: randomUUID(), model: grounded.model, sources: grounded.sources })
-      for await (const text of grounded.stream) writeSse(res, 'chunk', { text })
+      let chunkCount = 0
+      try {
+        for await (const text of grounded.stream) {
+          chunkCount += 1
+          writeSse(res, 'chunk', { text })
+        }
+      } catch (error) {
+        if (chunkCount > 0) throw error
+        const safeCode = error instanceof AIError ? error.code : 'STREAM_ERROR'
+        writeSse(res, 'chunk', { text: grounded.fallbackText })
+        const durationMs = Date.now() - startedAt
+        writeSse(res, 'usage', { durationMs })
+        writeSse(res, 'done', {})
+        res.end()
+        await logger.record({ useCase: 'chat', provider: info?.id || 'unknown', model: grounded.model, status: 'fallback', durationMs, fallbackUsed: true, errorCode: safeCode })
+        return
+      }
       const durationMs = Date.now() - startedAt
       writeSse(res, 'usage', { durationMs })
       writeSse(res, 'done', {})

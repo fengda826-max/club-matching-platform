@@ -1,5 +1,6 @@
 import cors from 'cors'
 import express from 'express'
+import type { Request } from 'express'
 import cookieParser from 'cookie-parser'
 import path from 'path'
 import { env } from './lib/env'
@@ -18,16 +19,29 @@ function isAllowedOrigin(origin: string): boolean {
     : origin === allowed)
 }
 
+function isForwardedSameOrigin(origin: string, req: Request): boolean {
+  try {
+    const candidate = new URL(origin)
+    const forwardedHost = req.get('x-forwarded-host')?.split(',')[0].trim()
+    const forwardedProtocol = req.get('x-forwarded-proto')?.split(',')[0].trim()
+    const host = forwardedHost || req.get('host')
+    const protocol = forwardedProtocol || req.protocol
+    return Boolean(host) && candidate.host === host && candidate.protocol === `${protocol}:`
+  } catch {
+    return false
+  }
+}
+
 export function createApp() {
   const app = express()
   if (env.NODE_ENV === 'production') app.set('trust proxy', 1)
-  app.use(cors({
+  app.use((req, res, next) => cors({
     credentials: true,
     origin: (origin, callback) => {
-      if (!origin || isAllowedOrigin(origin)) return callback(null, true)
+      if (!origin || isAllowedOrigin(origin) || isForwardedSameOrigin(origin, req)) return callback(null, true)
       return callback(new Error('Not allowed by CORS'))
     },
-  }))
+  })(req, res, next))
   app.use(express.json({ limit: '100kb' }))
   app.use(cookieParser())
 

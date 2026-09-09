@@ -102,8 +102,8 @@ AI_MODEL=replace_with_your_deepseek_v4_model_id
 
 ```bash
 cp backend/.env.example backend/.env
-# 将需要的值加载到环境变量，至少包含 ADMIN_PASSWORD、SESSION_SECRET 和可选 AI_API_KEY
-docker compose up -d --build
+# 编辑 backend/.env，至少替换 ADMIN_PASSWORD、SESSION_SECRET 和可选 AI_API_KEY
+docker compose --env-file backend/.env up -d --build
 curl --fail http://127.0.0.1/api/health
 ```
 
@@ -127,7 +127,7 @@ npm run evaluate
 
 - AI Key 只存在于后端环境变量；前端不依赖任何模型 SDK。
 - 管理 Cookie 为 HttpOnly、SameSite=Lax、HMAC-SHA256 签名，最长 8 小时。
-- 登录和 AI 接口有独立限流；生产 CORS 使用显式白名单。
+- 登录和 AI 接口有独立限流；生产 CORS 支持反向代理同源访问，并为前后端分离部署保留显式白名单。
 - 公共分析接口只有聚合值，不返回联系方式、会话 ID、提示词、密码或供应商错误原文。
 
 ## 已知限制

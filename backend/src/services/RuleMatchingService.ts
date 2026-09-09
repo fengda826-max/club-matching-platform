@@ -18,6 +18,14 @@ function overlapScore(matches: number, requested: number, maximum: number): numb
   return Math.round((matches / requested) * maximum)
 }
 
+function timeMatches(availableTime: string, activityTime: string): boolean {
+  const requested = normalize(availableTime)
+  const actual = normalize(activityTime)
+  if (requested === '周末') return actual.includes('周六') || actual.includes('周日')
+  if (requested === '工作日') return ['周一', '周二', '周三', '周四', '周五'].some(day => actual.includes(day))
+  return actual.includes(requested)
+}
+
 export class RuleMatchingService {
   match(preference: UserPreference, clubs: Club[]): RuleMatch[] {
     return clubs
@@ -31,7 +39,7 @@ export class RuleMatchingService {
     if (preference.maxFee !== undefined && club.fee > preference.maxFee) return false
     if (preference.maxWeeklyHours !== undefined && club.weeklyHours > preference.maxWeeklyHours) return false
     if (preference.campus && club.campus !== '全校区' && normalize(club.campus) !== normalize(preference.campus)) return false
-    if (preference.availableTimes.length > 0 && !preference.availableTimes.some(time => normalize(club.activityTime).includes(normalize(time)))) return false
+    if (preference.availableTimes.length > 0 && !preference.availableTimes.some(time => timeMatches(time, club.activityTime))) return false
 
     const userSkill = skillRank[preference.skillLevel]
     const requiredSkill = skillRank[club.skillRequirement as keyof typeof skillRank]
