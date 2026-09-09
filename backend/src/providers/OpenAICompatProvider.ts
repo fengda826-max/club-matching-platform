@@ -9,8 +9,8 @@ type CompletionResponse = {
 }
 
 export class OpenAICompatProvider extends BaseProvider implements AIProvider {
-  private readonly defaultModel = 'deepseek-chat'
-  private readonly defaultBaseURL = 'https://api.deepseek.com/v1'
+  private readonly defaultModel = 'deepseek-v4-flash'
+  private readonly defaultBaseURL = 'https://api.deepseek.com'
 
   constructor(config: AIConfig) { super(config) }
 

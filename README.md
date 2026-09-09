@@ -94,9 +94,11 @@ DeepSeek 配置使用你账号实际提供的 V4 模型 ID：
 ```env
 AI_PROVIDER=openai-compat
 AI_API_KEY=replace_me
-AI_BASE_URL=https://api.deepseek.com/v1
-AI_MODEL=replace_with_your_deepseek_v4_model_id
+AI_BASE_URL=https://api.deepseek.com
+AI_MODEL=deepseek-v4-flash
 ```
+
+需要更高质量时可切换为 `deepseek-v4-pro`；作品演示默认使用响应更快、成本更低的 `deepseek-v4-flash`。
 
 ## Docker 与腾讯云部署
 
