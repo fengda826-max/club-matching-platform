@@ -8,10 +8,11 @@ export class AnalyticsService {
   constructor(private readonly prisma: PrismaClient) {}
 
   async getSummary() {
-    const [clubCount, categories, intentCount, logs] = await Promise.all([
+    const [clubCount, categories, intentCount, matchingIntentCount, logs] = await Promise.all([
       this.prisma.club.count(),
       this.prisma.club.groupBy({ by: ['category'], _count: true, orderBy: { _count: { category: 'desc' } }, take: 5 }),
       this.prisma.recruitmentIntent.count(),
+      this.prisma.recruitmentIntent.count({ where: { source: 'matching' } }),
       this.prisma.aIRequestLog.findMany({ select: {
         useCase: true, status: true, durationMs: true, inputTokens: true, outputTokens: true,
         fallbackUsed: true, errorCode: true,
@@ -22,7 +23,7 @@ export class AnalyticsService {
     return {
       business: {
         clubCount, recommendationCount, intentCount,
-        conversionRate: percent(intentCount, recommendationCount),
+        conversionRate: percent(matchingIntentCount, recommendationCount),
         topCategories: categories.map(item => ({ category: item.category, count: item._count })),
       },
       ai: {
