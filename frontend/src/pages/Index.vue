@@ -1,1029 +1,235 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { useClubsStore } from '@/stores/clubs'
+import CategoryMark from '@/components/ui/CategoryMark.vue'
+import DecisionFact from '@/components/ui/DecisionFact.vue'
 
 const router = useRouter()
 const clubsStore = useClubsStore()
-
+const requirement = ref('')
 const searchInput = ref('')
-const activeCategory = ref('')
 const loading = ref(false)
+const loadError = ref(false)
+const recruitingClubs = computed(() => clubsStore.clubs.filter(club => club.isRecruiting).slice(0, 3))
+const skillLabels = { beginner: '零基础可加入', intermediate: '需要一定基础', advanced: '需要进阶能力', expert: '需要专业经验' }
 
-const featuredClubs = computed(() => clubsStore.featuredClubs)
-const categories = [
-  { id: 'tech', name: '技术', icon: '💻', color: 'from-blue-500 to-cyan-500' },
-  { id: 'sports', name: '体育', icon: '⚽', color: 'from-green-500 to-emerald-500' },
-  { id: 'arts', name: '艺术', icon: '🎨', color: 'from-pink-500 to-rose-500' },
-  { id: 'academic', name: '学术', icon: '📚', color: 'from-purple-500 to-indigo-500' },
-  { id: 'cultural', name: '文化', icon: '🌍', color: 'from-orange-500 to-amber-500' },
+// Illustrative points use the rule results' dimension maxima, not the visitor's input.
+const exampleDimensions = [
+  { label: '兴趣', score: 40, max: 40 },
+  { label: '目标', score: 13, max: 25 },
+  { label: '时间', score: 20, max: 20 },
+  { label: '门槛', score: 15, max: 15 },
 ]
 
-// Fetch clubs on page load
 async function loadClubs() {
-  if (clubsStore.clubs.length === 0) {
-    loading.value = true
-    try {
-      await clubsStore.fetchClubs()
-      await clubsStore.fetchStatistics()
-    } catch (err) {
-      console.error('Failed to load clubs:', err)
-    } finally {
-      loading.value = false
-    }
-  }
+  loading.value = true
+  loadError.value = false
+  const results = await Promise.allSettled([
+    clubsStore.clubs.length ? Promise.resolve() : clubsStore.fetchClubs(),
+    clubsStore.statistics ? Promise.resolve() : clubsStore.fetchStatistics(),
+  ])
+  loadError.value = results.some(result => result.status === 'rejected')
+  loading.value = false
 }
 
-onMounted(() => {
-  loadClubs()
-})
-
-const handleSearch = () => {
-  if (searchInput.value.trim()) {
-    router.push({ name: 'clubs', query: { search: searchInput.value } })
-  }
+function startMatching() {
+  const need = requirement.value.trim()
+  router.push(need ? { path: '/matching', query: { need } } : '/matching')
 }
 
-const selectCategory = (categoryId: string) => {
-  activeCategory.value = activeCategory.value === categoryId ? '' : categoryId
+function handleSearch() {
+  const search = searchInput.value.trim()
+  if (search) router.push({ path: '/clubs', query: { search } })
 }
+
+onMounted(loadClubs)
 </script>
 
 <template>
-  <div class="home-page">
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-pattern"></div>
+  <div class="home-page content-wide">
+    <section class="hero-section" aria-labelledby="home-heading">
       <div class="hero-content">
-        <div class="hero-badge">
-          <span class="pulse-dot"></span>
-          <span>可解释的社团选择助手</span>
-        </div>
-
-        <h1 class="hero-title">
-          <span class="title-gradient">把选择条件说清楚</span>
-          <br />
-          <span class="title-highlight">再做推荐</span>
-        </h1>
-
-        <p class="hero-description">
-          先用时间、费用、校区和门槛排除不合适的社团，
-          <br />
-          再用可追溯的评分与资料依据帮助你比较。
-        </p>
-
-        <div class="hero-search">
-          <div class="search-wrapper">
-            <input
-              v-model="searchInput"
-              type="text"
-              class="search-input"
-              placeholder="搜索社团名称、标签或关键词..."
-              @keyup.enter="handleSearch"
-            />
-            <button class="search-button" @click="handleSearch">
-              <span>🔍</span>
-            </button>
+        <p class="product-purpose">CampusMatch / 可解释的社团选择助手</p>
+        <h1 id="home-heading">把选择条件说清楚，<br />找到适合你的社团。</h1>
+        <p class="hero-description">从你的课余时间和兴趣出发。先确认条件，再看评分依据，让每一次推荐都有理由。</p>
+        <form aria-label="描述匹配需求" class="requirement-form" @submit.prevent="startMatching">
+          <label for="home-requirement">告诉我你的时间、兴趣和目标</label>
+          <textarea id="home-requirement" v-model="requirement" name="requirement" rows="3"
+            placeholder="例如：周末有空，零基础，想学编程，每周能投入 3 小时。" aria-describedby="requirement-help" />
+          <div class="form-footer">
+            <p id="requirement-help">下一步可以检查和修改提取出的条件。</p>
+            <button class="button-primary" type="submit">分析我的需求</button>
           </div>
-        </div>
-
-        <div class="hero-actions">
-          <button class="action-button primary" @click="router.push('/matching')">
-            <span class="button-icon">✓</span>
-            <span>开始条件匹配</span>
-          </button>
-          <button class="action-button secondary" @click="router.push('/chat')">
-            <span class="button-icon">💬</span>
-            <span>AI 问答</span>
-          </button>
-          <button class="action-button outline" @click="router.push('/clubs')">
-            <span>浏览全部</span>
-          </button>
-        </div>
-
-        <!-- Stats -->
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-number">{{ clubsStore.statistics?.totalClubs ?? clubsStore.clubs.length }}</span>
-            <span class="stat-label">可浏览社团</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-number">{{ clubsStore.statistics?.totalMembers ?? 0 }}</span>
-            <span class="stat-label">已登记成员</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-number">{{ clubsStore.statistics?.categories.length ?? 0 }}</span>
-            <span class="stat-label">实际分类</span>
-          </div>
-        </div>
+        </form>
+        <div class="hero-links"><RouterLink to="/clubs">先浏览社团</RouterLink><RouterLink to="/chat">向 AI 提问</RouterLink></div>
       </div>
 
-      <!-- Floating Elements -->
-      <div class="floating-elements">
-        <div class="float-item" style="--delay: 0s; --x: 10%; --y: 20%">🎯</div>
-        <div class="float-item" style="--delay: -2s; --x: 85%; --y: 30%">🎨</div>
-        <div class="float-item" style="--delay: -4s; --x: 15%; --y: 70%">⚽</div>
-        <div class="float-item" style="--delay: -6s; --x: 80%; --y: 75%">📚</div>
-      </div>
+      <aside class="recommendation-example" aria-labelledby="example-heading">
+        <div class="example-label"><span>推荐结果示例</span><span>规则评分 + AI 解释</span></div>
+        <p class="example-request">“周末有空，零基础，想学编程、参与竞赛。”</p>
+        <div class="example-title">
+          <div><CategoryMark category="技术" size="sm" /><h2 id="example-heading">编程实践社</h2></div>
+          <div class="example-score"><strong>88</strong><span>/ 100 分</span></div>
+        </div>
+        <dl class="example-facts"><DecisionFact label="活动时间" value="周六下午" /><DecisionFact label="参与门槛" value="零基础可加入" /></dl>
+        <div class="example-dimensions" aria-label="示例四维评分">
+          <div v-for="dimension in exampleDimensions" :key="dimension.label" class="dimension">
+            <div><span>{{ dimension.label }}</span><strong>{{ dimension.score }} / {{ dimension.max }}</strong></div>
+            <div class="dimension-track" aria-hidden="true"><span :style="{ width: `${dimension.score / dimension.max * 100}%` }" /></div>
+          </div>
+        </div>
+        <div class="example-reason"><h3>AI 理由示例</h3><p>周六活动与你的空闲时间一致，入门项目适合零基础同学。资料支持“学习编程”这一目标，竞赛安排仍需向社团确认。</p></div>
+        <p class="example-note">示意社团与分数，用于说明推荐方式。提交你的需求后生成实际结果。</p>
+      </aside>
     </section>
 
-    <!-- Categories Section -->
-    <section class="categories-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <span class="title-icon">📂</span>
-          探索分类
-        </h2>
-        <p class="section-subtitle">找到你感兴趣的领域</p>
-      </div>
-
-      <div class="categories-grid">
-        <div
-          v-for="category in categories"
-          :key="category.id"
-          class="category-card"
-          :class="{ active: activeCategory === category.id }"
-          @click="selectCategory(category.id)"
-        >
-          <div class="category-icon-wrapper">
-            <span class="category-icon">{{ category.icon }}</span>
-          </div>
-          <h3 class="category-name">{{ category.name }}</h3>
-          <div class="category-arrow">
-            <span>→</span>
-          </div>
-        </div>
-      </div>
+    <section class="trust-section" aria-label="推荐承诺">
+      <article><h2>硬约束先行</h2><p>先检查时间、费用、校区与门槛，排除不满足条件的社团。</p></article>
+      <article><h2>理由可追溯</h2><p>规则计算四维分数，AI 根据社团资料解释，支持你逐项比较。</p></article>
+      <article><h2>模型失效可降级</h2><p>AI 不可用时仍可确认条件、获取规则结果，并查看降级说明。</p></article>
     </section>
 
-    <!-- Featured Clubs Section -->
-    <section class="featured-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <span class="title-icon">🔥</span>
-          当前社团
-        </h2>
-        <p class="section-subtitle">数据来自演示库，不虚构热度与成功率</p>
-      </div>
-
-      <div class="clubs-grid">
-        <div v-for="(club, index) in featuredClubs" :key="club.id" class="club-card" :style="{ '--delay': index * 0.1 + 's' }">
-          <div class="club-image">
-            <div class="club-emoji">{{ getCategoryEmoji(club.category) }}</div>
-            <div class="club-badge">{{ club.category }}</div>
-          </div>
-
-          <div class="club-content">
-            <h3 class="club-name">{{ club.name }}</h3>
-            <p class="club-description">{{ club.description.substring(0, 90) }}...</p>
-
-            <div class="club-footer">
-              <div class="club-members">
-                <span>👥</span>
-                <span>{{ club.memberCount }} 成员</span>
-              </div>
-              <button class="club-cta" @click="router.push('/clubs')">
-                查看详情 →
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-cta">
-        <button class="cta-button" @click="router.push('/clubs')">
-          <span>探索更多社团</span>
-          <span class="cta-arrow">→</span>
-        </button>
-      </div>
+    <section class="how-section" aria-labelledby="how-heading">
+      <div class="section-heading"><h2 id="how-heading">从一句需求，到有依据的选择</h2><p>你确认条件，系统帮助比较。</p></div>
+      <ol class="how-rail">
+        <li><span class="step-number" aria-hidden="true">1</span><div><h3>描述你的需求</h3><p>用自己的话说明兴趣、时间和目标。</p></div></li>
+        <li><span class="step-number" aria-hidden="true">2</span><div><h3>确认匹配条件</h3><p>检查提取结果，补充费用、校区和门槛。</p></div></li>
+        <li><span class="step-number" aria-hidden="true">3</span><div><h3>比较后再决定</h3><p>查看分数、依据和注意事项，登记意向。</p></div></li>
+      </ol>
     </section>
 
-    <!-- Features Section -->
-    <section class="features-section">
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
-            <span class="feature-icon">✨</span>
-          </div>
-          <h3 class="feature-title">规则负责决策</h3>
-          <p class="feature-description">
-            时间、费用、校区和门槛是硬约束，固定权重产生可复现分数
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
-            <span class="feature-icon">💬</span>
-          </div>
-          <h3 class="feature-title">智能问答助手</h3>
-          <p class="feature-description">
-            有任何疑问？AI 助手随时在线，为你解答所有社团相关问题
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
-            <span class="feature-icon">🎯</span>
-          </div>
-          <h3 class="feature-title">一键加入社团</h3>
-          <p class="feature-description">
-            找到心仪社团后，立即获取联系方式，快速开始你的社团之旅
-          </p>
-        </div>
+    <section class="recruiting-section" aria-labelledby="recruiting-heading" :aria-busy="loading">
+      <div class="section-heading recruiting-heading">
+        <div><h2 id="recruiting-heading">看看正在招新的社团</h2><p>社团信息与统计来自当前演示数据库。</p></div>
+        <RouterLink class="button-secondary" to="/clubs">浏览全部社团</RouterLink>
       </div>
+      <dl class="database-stats" aria-label="社团数据">
+        <DecisionFact label="可浏览社团" :value="clubsStore.statistics?.totalClubs ?? '—'" />
+        <DecisionFact label="已登记成员" :value="clubsStore.statistics?.totalMembers ?? '—'" />
+        <DecisionFact label="实际分类" :value="clubsStore.statistics?.categories.length ?? '—'" />
+      </dl>
+      <form class="club-search" aria-label="搜索社团" @submit.prevent="handleSearch">
+        <label for="home-search">已有感兴趣的方向？</label>
+        <div><input id="home-search" v-model="searchInput" type="search" placeholder="搜索社团名称、标签或关键词" /><button type="submit" class="button-secondary">搜索社团</button></div>
+      </form>
+      <div v-if="loadError" class="load-error" role="alert"><p>社团数据暂时无法加载，请检查服务连接后重试。</p><button class="button-secondary" type="button" @click="loadClubs">重新加载</button></div>
+      <p v-if="loading" class="load-status" role="status">正在加载社团信息…</p>
+      <div v-else-if="recruitingClubs.length" class="clubs-grid">
+        <article v-for="club in recruitingClubs" :key="club.id" class="club-card">
+          <CategoryMark :category="club.category" />
+          <h3>{{ club.name }}</h3>
+          <p class="club-description">{{ club.description }}</p>
+          <dl class="club-facts">
+            <DecisionFact label="活动时间" :value="club.activityTime" /><DecisionFact label="校区" :value="club.campus" />
+            <DecisionFact label="费用" :value="club.fee ? `${club.fee} 元` : '免费'" /><DecisionFact label="门槛" :value="skillLabels[club.skillRequirement]" />
+          </dl>
+          <div class="club-footer"><span>{{ club.memberCount }} 名成员</span><RouterLink :to="{ path: '/clubs', query: { search: club.name } }">查看详情</RouterLink></div>
+        </article>
+      </div>
+      <p v-else-if="!loadError" class="load-status">暂时没有正在招新的社团，可前往社团列表查看全部信息。</p>
     </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-      <div class="cta-content">
-        <div class="cta-emoji">🚀</div>
-        <h2 class="cta-title">准备好开始了吗？</h2>
-        <p class="cta-description">
-          还在犹豫？让 AI 帮你找到答案，开启精彩的校园社团生活
-        </p>
-        <button class="cta-primary-button" @click="router.push('/matching')">
-          <span>开始智能匹配</span>
-          <span class="cta-arrow">→</span>
-        </button>
-      </div>
+    <section class="final-cta" aria-labelledby="cta-heading">
+      <div><h2 id="cta-heading">从你的条件开始选择。</h2><p>填好时间和兴趣，看看哪些社团值得进一步了解。</p></div>
+      <RouterLink class="button-primary" to="/matching">开始条件匹配</RouterLink>
     </section>
   </div>
 </template>
 
-<script lang="ts">
-const getCategoryEmoji = (category: string) => {
-  const emojiMap: Record<string, string> = {
-    '技术': '💻',
-    '体育': '⚽',
-    '艺术': '🎨',
-    '学术': '📚',
-    '文化': '🌍',
-  }
-  return emojiMap[category] || '🎯'
-}
-</script>
-
 <style scoped>
-.home-page {
-  min-height: 100vh;
-}
-
-/* Hero Section */
-.hero-section {
-  position: relative;
-  min-height: 90vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 40px 20px;
-}
-
-.hero-pattern {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(46, 134, 171, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(255, 217, 61, 0.1) 0%, transparent 50%);
-  animation: patternMove 20s ease-in-out infinite;
-}
-
-@keyframes patternMove {
-  0%, 100% {
-    transform: scale(1) rotate(0deg);
-  }
-  50% {
-    transform: scale(1.1) rotate(5deg);
-  }
-}
-
-.hero-content {
-  position: relative;
-  max-width: 900px;
-  text-align: center;
-  z-index: 1;
-}
-
-/* Hero Badge */
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  background: rgba(255, 107, 107, 0.1);
-  border: 2px solid rgba(255, 107, 107, 0.3);
-  border-radius: 9999px;
-  color: #FF6B6B;
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 32px;
-  animation: slideDown 0.6s ease-out;
-}
-
-.pulse-dot {
-  width: 8px;
-  height: 8px;
-  background: #FF6B6B;
-  border-radius: 50%;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 0.5;
-  }
-}
-
-/* Hero Title */
-.hero-title {
-  font-family: var(--font-display);
-  font-size: clamp(40px, 8vw, 72px);
-  font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 24px;
-  animation: slideUp 0.6s ease-out 0.1s both;
-}
-
-.title-gradient {
-  background: linear-gradient(135deg, #2E86AB 0%, #2E86AB 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.title-highlight {
-  display: inline-block;
-  background: linear-gradient(135deg, #FF6B6B 0%, #EE5A5A 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%, 100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.1);
-  }
-}
-
-/* Hero Description */
-.hero-description {
-  font-size: 18px;
-  color: var(--color-gray-600);
-  line-height: 1.8;
-  margin-bottom: 40px;
-  animation: slideUp 0.6s ease-out 0.2s both;
-}
-
-/* Hero Search */
-.hero-search {
-  margin-bottom: 40px;
-  animation: slideUp 0.6s ease-out 0.3s both;
-}
-
-.search-wrapper {
-  display: flex;
-  gap: 12px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.search-input {
-  flex: 1;
-  padding: 16px 24px;
-  font-size: 16px;
-  border: 2px solid var(--color-gray-200);
-  border-radius: var(--radius-full);
-  outline: none;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.search-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
-}
-
-.search-input::placeholder {
-  color: var(--color-gray-600);
-}
-
-.search-button {
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  border: none;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 24px;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-}
-
-.search-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-}
-
-.search-button:active {
-  transform: scale(0.95);
-}
-
-/* Hero Actions */
-.hero-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-  animation: slideUp 0.6s ease-out 0.4s both;
-}
-
-.action-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 32px;
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.action-button.primary {
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
-  color: white;
-  box-shadow: 0 4px 16px rgba(46, 134, 171, 0.3);
-}
-
-.action-button.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(46, 134, 171, 0.4);
-}
-
-.action-button.secondary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: white;
-  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
-}
-
-.action-button.secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.4);
-}
-
-.action-button.outline {
-  background: white;
-  color: var(--color-dark);
-  border: 2px solid var(--color-gray-300);
-}
-
-.action-button.outline:hover {
-  border-color: var(--color-secondary);
-  color: var(--color-secondary);
-  background: rgba(46, 134, 171, 0.05);
-}
-
-.button-icon {
-  font-size: 20px;
-}
-
-/* Hero Stats */
-.hero-stats {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-  margin-top: 48px;
-  animation: slideUp 0.6s ease-out 0.5s both;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.stat-number {
-  font-family: var(--font-display);
-  font-size: 32px;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: var(--color-gray-600);
-  font-weight: 500;
-}
-
-.stat-divider {
-  width: 1px;
-  height: 40px;
-  background: var(--color-gray-200);
-}
-
-/* Floating Elements */
-.floating-elements {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.float-item {
-  position: absolute;
-  font-size: 48px;
-  left: var(--x);
-  top: var(--y);
-  animation: float 6s ease-in-out infinite;
-  animation-delay: var(--delay);
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(5deg);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Section Styles */
-.categories-section,
-.featured-section,
-.features-section,
-.cta-section {
-  padding: 80px 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.section-header {
-  text-align: center;
-  margin-bottom: 48px;
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.title-icon {
-  font-size: 36px;
-}
-
-.section-subtitle {
-  font-size: 18px;
-  color: var(--color-gray-600);
-}
-
-/* Categories Grid */
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.category-card {
-  background: white;
-  border-radius: var(--radius-lg);
-  padding: 32px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid var(--color-gray-100);
-  position: relative;
-  overflow: hidden;
-}
-
-.category-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.category-card:hover {
-  transform: translateY(-8px);
-  border-color: var(--color-primary);
-  box-shadow: 0 12px 32px rgba(255, 107, 107, 0.15);
-}
-
-.category-card.active {
-  border-color: var(--color-primary);
-  background: rgba(255, 107, 107, 0.05);
-}
-
-.category-icon-wrapper {
-  width: 80px;
-  height: 80px;
-  background: var(--color-gray-100);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
-  transition: all 0.3s ease;
-}
-
-.category-card:hover .category-icon-wrapper {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  transform: scale(1.1) rotate(5deg);
-}
-
-.category-icon {
-  font-size: 40px;
-}
-
-.category-name {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--color-dark);
-  margin-bottom: 0;
-}
-
-.category-arrow {
-  position: absolute;
-  top: 50%;
-  right: 16px;
-  transform: translateY(-50%);
-  font-size: 24px;
-  color: var(--color-primary);
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-
-.category-card:hover .category-arrow {
-  opacity: 1;
-  right: 20px;
-}
-
-/* Clubs Grid */
-.clubs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 32px;
-  margin-bottom: 48px;
-}
-
-.club-card {
-  background: white;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  transition: all 0.4s ease;
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  opacity: 0;
-  animation: slideUp 0.6s ease-out both;
-  animation-delay: var(--delay);
-}
-
-.club-card:hover {
-  transform: translateY(-12px);
-  box-shadow: var(--shadow-lg);
-}
-
-.club-image {
-  height: 160px;
-  background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-200) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.club-emoji {
-  font-size: 64px;
-  animation: float 4s ease-in-out infinite;
-}
-
-.club-badge {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--color-secondary);
-  backdrop-filter: blur(10px);
-}
-
-.club-content {
-  padding: 24px;
-}
-
-.club-name {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-}
-
-.club-description {
-  color: var(--color-gray-600);
-  line-height: 1.6;
-  margin-bottom: 20px;
-  min-height: 64px;
-}
-
-.club-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-gray-100);
-}
-
-.club-members {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--color-gray-600);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.club-cta {
-  padding: 10px 20px;
-  background: transparent;
-  color: var(--color-primary);
-  border: none;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: var(--radius-md);
-}
-
-.club-cta:hover {
-  background: rgba(255, 107, 107, 0.1);
-}
-
-/* Section CTA */
-.section-cta {
-  text-align: center;
-}
-
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 40px;
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
-  color: white;
-  border: none;
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 24px rgba(46, 134, 171, 0.3);
-}
-
-.cta-button:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(46, 134, 171, 0.4);
-}
-
-.cta-arrow {
-  transition: transform 0.3s ease;
-}
-
-.cta-button:hover .cta-arrow {
-  transform: translateX(4px);
-}
-
-/* Features Section */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 32px;
-}
-
-.feature-card {
-  background: white;
-  border-radius: var(--radius-lg);
-  padding: 40px 32px;
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-  border: 2px solid var(--color-gray-100);
-}
-
-.feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-md);
-  border-color: rgba(255, 107, 107, 0.3);
-}
-
-.feature-icon-wrapper {
-  width: 80px;
-  height: 80px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 24px;
-}
-
-.feature-icon {
-  font-size: 40px;
-}
-
-.feature-title {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-}
-
-.feature-description {
-  color: var(--color-gray-600);
-  line-height: 1.7;
-}
-
-/* CTA Section */
-.cta-section {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  border-radius: var(--radius-lg);
-  margin: 80px 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.cta-section::before {
-  content: '';
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  top: -200px;
-  right: -100px;
-  animation: float 8s ease-in-out infinite;
-}
-
-.cta-content {
-  position: relative;
-  text-align: center;
-  padding: 60px 40px;
-  z-index: 1;
-}
-
-.cta-emoji {
-  font-size: 64px;
-  margin-bottom: 24px;
-  animation: bounce 2s ease-in-out infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.cta-title {
-  font-family: var(--font-display);
-  font-size: 40px;
-  font-weight: 800;
-  color: white;
-  margin-bottom: 16px;
-}
-
-.cta-description {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 40px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.cta-primary-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 18px 48px;
-  background: white;
-  color: var(--color-primary);
-  border: none;
-  border-radius: var(--radius-full);
-  font-weight: 700;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-.cta-primary-button:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .hero-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .action-button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .hero-stats {
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .stat-divider {
-    width: 40px;
-    height: 1px;
-  }
-
-  .hero-search {
-    margin-bottom: 32px;
-  }
-
-  .categories-section,
-  .featured-section,
-  .features-section {
-    padding: 60px 20px;
-  }
-
-  .categories-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .clubs-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cta-section {
-    margin: 60px 20px;
-  }
-
-  .cta-title {
-    font-size: 28px;
-  }
+.home-page { padding-block: 56px 64px; }
+h1, h2, h3, p { margin: 0; }
+h2 { font-size: clamp(24px, 2.6vw, 32px); line-height: 1.35; font-weight: 800; letter-spacing: -.035em; }
+h3 { font-size: 18px; line-height: 1.5; font-weight: 750; }
+.hero-section { display: grid; grid-template-columns: 1.1fr .9fr; align-items: center; gap: 48px; padding-bottom: 56px; }
+.hero-content, .recommendation-example { min-width: 0; }
+.product-purpose { color: var(--campus-green); font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+h1 { font-size: clamp(36px, 4.4vw, 60px); font-weight: 850; line-height: 1.2; letter-spacing: -.055em; }
+.hero-description { max-width: 32em; margin-block: 22px 28px; color: var(--text-muted); font-size: 17px; }
+.requirement-form { padding: 20px; border: 1px solid var(--border-moss); border-radius: var(--radius-card); background: var(--surface); }
+.requirement-form label { display: block; margin-bottom: 12px; font-size: 15px; font-weight: 650; }
+textarea, input { min-width: 0; width: 100%; border: 1px solid var(--border-moss); border-radius: var(--radius-control); padding: 12px; background: var(--surface); color: var(--text-ink); }
+textarea { display: block; resize: vertical; min-height: 110px; line-height: 1.6; }
+textarea::placeholder, input::placeholder { color: var(--text-muted); opacity: 1; }
+.form-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; }
+.form-footer p { color: var(--text-muted); font-size: 14px; max-width: 16em; }
+.form-footer button { flex-shrink: 0; }
+.hero-links { display: flex; gap: 24px; margin-top: 14px; }
+.hero-links a, .club-footer a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 650; text-underline-offset: 4px; }
+.recommendation-example { margin-right: 8px; padding: 28px; border-radius: var(--radius-panel); background: var(--ink-forest); color: var(--surface); box-shadow: 8px 8px 0 var(--signal-lime), 0 18px 35px rgb(23 63 56 / 10%); --text-muted: #c6d8d0; --text-ink: #fff; }
+.example-label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--text-muted); }
+.example-label > :first-child { color: var(--signal-lime); font-weight: 650; }
+.example-request { margin-block: 20px; padding-bottom: 20px; border-bottom: 1px solid #52736b; color: var(--text-muted); font-size: 14px; }
+.example-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.example-title :deep(.category-mark) { color: var(--text-muted); }
+.example-title :deep(.category-symbol) { color: var(--ink-forest); }
+.example-title h2 { margin-top: 10px; font-size: 27px; }
+.example-score { display: grid; text-align: right; white-space: nowrap; }
+.example-score strong { font-size: 62px; line-height: 1; letter-spacing: -.06em; color: var(--signal-lime); }
+.example-score span { margin-top: 8px; font-size: 14px; color: var(--text-muted); }
+.example-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-block: 22px; }
+.example-dimensions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; }
+.dimension > div:first-child { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.dimension-track { height: 4px; margin-top: 7px; background: #52736b; }
+.dimension-track span { display: block; height: 100%; background: var(--signal-lime); }
+.example-reason { margin-top: 24px; padding-top: 20px; border-top: 1px solid #52736b; }
+.example-reason h3 { font-size: 15px; margin-bottom: 8px; }
+.example-reason p, .example-note { font-size: 14px; color: var(--text-muted); }
+.example-note { margin-top: 18px; }
+.trust-section { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid var(--border-moss); padding-block: 28px; }
+.trust-section article { padding-inline: 28px; }
+.trust-section article:first-child { padding-left: 0; }
+.trust-section article:last-child { padding-right: 0; }
+.trust-section article + article { border-left: 1px solid var(--border-moss); }
+.trust-section h2 { font-size: 18px; letter-spacing: 0; margin-bottom: 8px; }
+.trust-section p, .section-heading p, .how-rail p, .final-cta p { color: var(--text-muted); font-size: 15px; }
+.how-section, .recruiting-section { padding-top: 56px; }
+.section-heading p { margin-top: 10px; }
+.how-rail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; list-style: none; padding: 0; margin: 28px 0 0; }
+.how-rail li { display: flex; align-items: flex-start; gap: 14px; padding-top: 20px; border-top: 2px solid var(--border-moss); }
+.step-number { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; border: 1px solid var(--border-moss); border-radius: var(--radius-control); color: var(--campus-green); font-size: 14px; font-weight: 750; }
+.how-rail p { margin-top: 6px; }
+.recruiting-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.database-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-block: 28px; padding-block: 20px; border-block: 1px solid var(--border-moss); }
+.database-stats :deep(dd) { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.club-search { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
+.club-search label { font-size: 15px; font-weight: 650; }
+.club-search > div { display: flex; gap: 10px; width: min(100%, 540px); }
+.club-search button { flex-shrink: 0; }
+.clubs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.club-card { min-width: 0; padding: 24px; border: 1px solid var(--border-moss); border-radius: var(--radius-card); background: var(--surface); display: flex; flex-direction: column; }
+.club-card h3 { margin-top: 18px; font-size: 22px; overflow-wrap: anywhere; }
+.club-description { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; color: var(--text-muted); font-size: 15px; margin-block: 12px 22px; }
+.club-facts { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 14px; }
+.club-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--border-moss); margin-top: 10px; padding-top: 10px; font-size: 14px; color: var(--text-muted); }
+.load-error, .load-status { padding: 24px; border: 1px solid var(--border-moss); border-radius: var(--radius-card); margin-bottom: 20px; background: var(--surface); }
+.load-error p { margin-bottom: 12px; color: var(--danger); }
+.final-cta { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border-moss); }
+.final-cta p { margin-top: 10px; }
+@media (max-width: 1100px) {
+  .hero-section { gap: 28px; }
+  .recommendation-example { padding: 22px; }
+  .form-footer { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .form-footer p { max-width: none; }
+  .club-card { padding: 20px; }
+}
+@media (max-width: 820px) {
+  .home-page { padding-block: 32px 40px; }
+  .hero-section { grid-template-columns: 1fr; gap: 32px; padding-bottom: 40px; }
+  h1 { font-size: clamp(36px, 6vw, 48px); }
+  .hero-description { font-size: 16px; }
+  .form-footer { align-items: stretch; }
+  .requirement-form { padding: 16px; }
+  .trust-section, .how-rail, .clubs-grid { grid-template-columns: 1fr; }
+  .trust-section { gap: 20px; padding-block: 24px; }
+  .trust-section article { padding: 0; }
+  .trust-section article + article { border-left: 0; border-top: 1px solid var(--border-moss); padding-top: 20px; }
+  .how-section, .recruiting-section { padding-top: 40px; }
+  .how-rail { gap: 18px; }
+  .recruiting-heading, .club-search, .final-cta { flex-direction: column; align-items: stretch; gap: 18px; }
+  .club-search > div { width: 100%; }
+  .database-stats { gap: 12px; }
+  .example-title h2 { font-size: 24px; }
+  .final-cta { margin-top: 40px; }
 }
 </style>
