@@ -1,7 +1,8 @@
 import dotenv from 'dotenv'
 import { z } from 'zod'
+import path from 'path'
 
-dotenv.config()
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
 const rawEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -22,6 +23,7 @@ const rawEnvSchema = z.object({
 })
 
 const parsed = rawEnvSchema.parse(process.env)
+process.env.DATABASE_URL = parsed.DATABASE_URL
 
 if (parsed.NODE_ENV === 'production' && (!parsed.ADMIN_PASSWORD || !parsed.SESSION_SECRET)) {
   throw new Error('ADMIN_PASSWORD and SESSION_SECRET are required in production')

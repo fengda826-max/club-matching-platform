@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
     "build": "npm run build --workspace frontend && npm run build --workspace backend",
+    "test": "npm test --workspace frontend && npm test --workspace backend",
+    "evaluate": "npm run evaluate --workspace backend",
     "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev"
