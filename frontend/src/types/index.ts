@@ -1,21 +1,30 @@
 export interface Club {
-  id: string
+  id: number
   name: string
   category: string
   tags: string[]
   description: string
   requirements: string
-  memberCount: Count
+  memberCount: number
   contact: string
+  activityTime: string
+  weeklyHours: number
+  campus: string
+  fee: number
+  skillRequirement: 'beginner' | 'intermediate' | 'advanced' | 'expert'
+  isRecruiting: boolean
   images?: string[]
   aiGenerated?: boolean
 }
 
 export interface UserPreference {
   interests: string[]
-  skillLevel: string
-  // timeCommitment: string
+  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert'
   goals: string[]
+  availableTimes: string[]
+  campus?: string
+  maxWeeklyHours?: number
+  maxFee?: number
 }
 
 export interface MatchResult {
@@ -39,5 +48,3 @@ export interface ClubCategory {
   name: string
   icon: string
 }
-
-export type Count = string | number

@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useClubsStore } from '@/stores/clubs'
 import type { Club } from '@/types'
+import { apiClient } from '@/api/client'
+import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const clubsStore = useClubsStore()
@@ -50,8 +52,14 @@ const showClubDetails = (club: Club) => {
   showDetails.value = true
 }
 
-const applyToClub = (club: Club) => {
-  showClubDetails(club)
+const applyToClub = async (club: Club) => {
+  if (!club.isRecruiting) return
+  try {
+    const result = await apiClient.intents.record({ clubId: club.id, source: 'browsing' })
+    ElMessage.success(result.created ? '意向已记录' : '这条意向已经记录过')
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '记录失败')
+  }
 }
 
 const getCategoryEmoji = (category: string) => {
@@ -226,6 +234,13 @@ const getCategoryColor = (category: string) => {
                 </span>
               </div>
 
+              <div class="decision-facts">
+                <span>{{ club.activityTime || '时间待定' }}</span>
+                <span>{{ club.weeklyHours }} 小时/周</span>
+                <span>{{ club.campus || '校区待定' }}</span>
+                <span>{{ club.fee ? club.fee + ' 元' : '免费' }}</span>
+              </div>
+
               <div class="club-footer">
                 <div class="club-stats">
                   <span class="stat-item">
@@ -277,6 +292,12 @@ const getCategoryColor = (category: string) => {
               </div>
             </div>
             <div class="info-item">
+              <span class="info-icon">🗓</span><div class="info-content"><span class="info-label">活动安排</span><span class="info-value">{{ selectedClub.activityTime }} · 每周 {{ selectedClub.weeklyHours }} 小时</span></div>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">📍</span><div class="info-content"><span class="info-label">校区与费用</span><span class="info-value">{{ selectedClub.campus }} · {{ selectedClub.fee ? selectedClub.fee + ' 元' : '免费' }}</span></div>
+            </div>
+            <div class="info-item">
               <span class="info-icon">📋</span>
               <div class="info-content">
                 <span class="info-label">入社要求</span>
@@ -297,8 +318,8 @@ const getCategoryColor = (category: string) => {
           <button class="modal-btn modal-btn-secondary" @click="showDetails = false">
             关闭
           </button>
-          <button class="modal-btn modal-btn-primary" @click="applyToClub(selectedClub)">
-            <span>申请加入</span>
+          <button class="modal-btn modal-btn-primary" :disabled="!selectedClub.isRecruiting" @click="applyToClub(selectedClub)">
+            <span>{{ selectedClub.isRecruiting ? '记录加入意向' : '暂停招新' }}</span>
             <span class="btn-icon">→</span>
           </button>
         </div>
@@ -308,6 +329,8 @@ const getCategoryColor = (category: string) => {
 </template>
 
 <style scoped>
+.decision-facts { display:flex; flex-wrap:wrap; gap:7px; margin:14px 0; }
+.decision-facts span { padding:5px 8px; border-radius:6px; background:#f0f4f6; color:#526a78; font-size:12px; }
 .clubs-page {
   min-height: 100vh;
   animation: fadeIn 0.6s ease-out;

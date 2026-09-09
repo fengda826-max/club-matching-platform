@@ -5,8 +5,9 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     preferences: {
       interests: [] as string[],
-      skillLevel: '',
+      skillLevel: 'beginner',
       goals: [] as string[],
+      availableTimes: [] as string[],
     } as UserPreference,
     matchResults: [] as MatchResult[],
     chatHistory: [] as ChatMessage[],
@@ -111,8 +112,9 @@ export const useUserStore = defineStore('user', {
     resetPreferences() {
       this.preferences = {
         interests: [],
-        skillLevel: '',
-        goals: [],
+      skillLevel: 'beginner',
+      goals: [],
+      availableTimes: [],
       }
     },
   },

@@ -3,6 +3,7 @@ export interface ApiResponse<T> {
   success: boolean
   data?: T
   error?: string
+  message?: string
 }
 
 // Backend base URL
@@ -19,9 +20,16 @@ async function request<T>(endpoint: string, init: RequestInit = {}): Promise<T> 
   })
   const result = await response.json() as ApiResponse<T>
   if (!response.ok || !result.success || result.data === undefined) {
-    throw new Error(result.error || `Request failed with ${response.status}`)
+    throw new ApiClientError(response.status, result.error || 'REQUEST_FAILED', result.message || result.error || `Request failed with ${response.status}`)
   }
   return result.data
+}
+
+export class ApiClientError extends Error {
+  constructor(public readonly status: number, public readonly code: string, message: string) {
+    super(message)
+    this.name = 'ApiClientError'
+  }
 }
 
 const get = <T>(endpoint: string) => request<T>(endpoint)
@@ -45,6 +53,12 @@ export type Club = {
   memberCount: number
   contact: string
   tags: string
+  activityTime: string
+  weeklyHours: number
+  campus: string
+  fee: number
+  skillRequirement: 'beginner' | 'intermediate' | 'advanced' | 'expert'
+  isRecruiting: boolean
   createdAt: string
   updatedAt: string
 }
@@ -64,6 +78,29 @@ export type UserPreference = {
   interests: string[]
   skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert'
   goals: string[]
+  availableTimes: string[]
+  campus?: string
+  maxWeeklyHours?: number
+  maxFee?: number
+}
+
+export type Recommendation = {
+  mode: 'hybrid' | 'rules-only'
+  warning?: string
+  matches: Array<{
+    clubId: number
+    score: number
+    dimensions: { interest: number; goal: number; schedule: number; skill: number }
+    evidence: string[]
+    caveats: string[]
+    reason: string
+    club: Club
+  }>
+}
+
+export type AnalyticsSummary = {
+  business: { clubCount: number; recommendationCount: number; intentCount: number; conversionRate: number; topCategories: Array<{ category: string; count: number }> }
+  ai: { requestCount: number; successRate: number; averageDurationMs: number; validationFailures: number; fallbackCount: number; inputTokens: number; outputTokens: number }
 }
 
 export type ChatMessage = {
@@ -96,6 +133,22 @@ export const apiClient = {
     filterByCategory: (category: string) => get<Club[]>(`/clubs/category/${category}`),
     getAllTags: () => get<string[]>('/clubs/tags/all'),
     getStatistics: () => get<Statistics>('/clubs/statistics/summary'),
+  },
+
+  matching: {
+    extractPreferences: (text: string) => post<{ preference: UserPreference; mode: 'ai-extracted'; warnings: string[] }>('/matching/extract-preferences', { text }),
+    recommend: (preference: UserPreference) => post<Recommendation>('/matching/recommend', preference),
+  },
+
+  intents: {
+    record: (data: { clubId: number; source: 'matching' | 'browsing'; matchScore?: number }) => post<{ created: boolean }>('/intents', data),
+  },
+
+  analytics: { summary: () => get<AnalyticsSummary>('/analytics/summary') },
+  auth: {
+    status: () => get<{ authenticated: boolean }>('/auth/status'),
+    login: (password: string) => post<{ authenticated: boolean }>('/auth/login', { password }),
+    logout: () => post<{ authenticated: boolean }>('/auth/logout'),
   },
 
   // AI endpoints

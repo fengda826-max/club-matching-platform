@@ -12,9 +12,9 @@ const categories: ClubCategory[] = [
 ]
 
 // Convert backend Club type (number id) to frontend Club type (string id)
-function convertClub(club: apiClient.Club): Club {
+export function convertClub(club: apiClient.Club): Club {
   return {
-    id: String(club.id),
+    id: club.id,
     name: club.name,
     category: club.category,
     description: club.description,
@@ -22,6 +22,12 @@ function convertClub(club: apiClient.Club): Club {
     memberCount: club.memberCount,
     contact: club.contact,
     tags: club.tags.split(',').map(t => t.trim()).filter(t => t),
+    activityTime: club.activityTime,
+    weeklyHours: club.weeklyHours,
+    campus: club.campus,
+    fee: club.fee,
+    skillRequirement: club.skillRequirement,
+    isRecruiting: club.isRecruiting,
   }
 }
 
@@ -35,6 +41,12 @@ function convertClubToBackend(club: Omit<Club, 'id'>): Omit<apiClient.Club, 'id'
     memberCount: club.memberCount,
     contact: club.contact,
     tags: Array.isArray(club.tags) ? club.tags.join(',') : club.tags,
+    activityTime: club.activityTime,
+    weeklyHours: club.weeklyHours,
+    campus: club.campus,
+    fee: club.fee,
+    skillRequirement: club.skillRequirement,
+    isRecruiting: club.isRecruiting,
   }
 }
 
@@ -95,7 +107,7 @@ export const useClubsStore = defineStore('clubs', {
       return grouped
     },
 
-    getClubById: (state) => (id: string) => {
+    getClubById: (state) => (id: number) => {
       return state.clubs.find((club) => club.id === id)
     },
 
@@ -189,9 +201,9 @@ export const useClubsStore = defineStore('clubs', {
     /**
      * Update existing club via backend API
      */
-    async updateClub(id: string, updates: Partial<Club>) {
+    async updateClub(id: number, updates: Partial<Club>) {
       try {
-        const backendId = parseInt(id, 10)
+        const backendId = id
         const backendData: any = {}
         if (updates.tags) {
           backendData.tags = Array.isArray(updates.tags) ? updates.tags.join(',') : updates.tags
@@ -218,9 +230,9 @@ export const useClubsStore = defineStore('clubs', {
     /**
      * Delete club via backend API
      */
-    async deleteClub(id: string) {
+    async deleteClub(id: number) {
       try {
-        const backendId = parseInt(id, 10)
+        const backendId = id
         await apiClient.clubs.delete(backendId)
         const index = this.clubs.findIndex((club) => club.id === id)
         if (index > -1) {

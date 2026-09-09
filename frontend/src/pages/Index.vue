@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useClubsStore } from '@/stores/clubs'
 
@@ -10,7 +10,7 @@ const searchInput = ref('')
 const activeCategory = ref('')
 const loading = ref(false)
 
-const featuredClubs = clubsStore.featuredClubs
+const featuredClubs = computed(() => clubsStore.featuredClubs)
 const categories = [
   { id: 'tech', name: '技术', icon: '💻', color: 'from-blue-500 to-cyan-500' },
   { id: 'sports', name: '体育', icon: '⚽', color: 'from-green-500 to-emerald-500' },
@@ -57,19 +57,19 @@ const selectCategory = (categoryId: string) => {
       <div class="hero-content">
         <div class="hero-badge">
           <span class="pulse-dot"></span>
-          <span>新学期 · 新开始</span>
+          <span>可解释的社团选择助手</span>
         </div>
 
         <h1 class="hero-title">
-          <span class="title-gradient">发现属于你的</span>
+          <span class="title-gradient">把选择条件说清楚</span>
           <br />
-          <span class="title-highlight">社团天地</span>
+          <span class="title-highlight">再做推荐</span>
         </h1>
 
         <p class="hero-description">
-          告别选择困难，让 AI 为你精准匹配最适合的社团
+          先用时间、费用、校区和门槛排除不合适的社团，
           <br />
-          一键获取联系方式，开启精彩的校园生活 ✨
+          再用可追溯的评分与资料依据帮助你比较。
         </p>
 
         <div class="hero-search">
@@ -89,8 +89,8 @@ const selectCategory = (categoryId: string) => {
 
         <div class="hero-actions">
           <button class="action-button primary" @click="router.push('/matching')">
-            <span class="button-icon">✨</span>
-            <span>智能匹配</span>
+            <span class="button-icon">✓</span>
+            <span>开始条件匹配</span>
           </button>
           <button class="action-button secondary" @click="router.push('/chat')">
             <span class="button-icon">💬</span>
@@ -104,18 +104,18 @@ const selectCategory = (categoryId: string) => {
         <!-- Stats -->
         <div class="hero-stats">
           <div class="stat-item">
-            <span class="stat-number">10+</span>
-            <span class="stat-label">精品社团</span>
+            <span class="stat-number">{{ clubsStore.statistics?.totalClubs ?? clubsStore.clubs.length }}</span>
+            <span class="stat-label">可浏览社团</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
-            <span class="stat-number">1000+</span>
-            <span class="stat-label">活跃成员</span>
+            <span class="stat-number">{{ clubsStore.statistics?.totalMembers ?? 0 }}</span>
+            <span class="stat-label">已登记成员</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
-            <span class="stat-number">5</span>
-            <span class="stat-label">社团分类</span>
+            <span class="stat-number">{{ clubsStore.statistics?.categories.length ?? 0 }}</span>
+            <span class="stat-label">实际分类</span>
           </div>
         </div>
       </div>
@@ -163,9 +163,9 @@ const selectCategory = (categoryId: string) => {
       <div class="section-header">
         <h2 class="section-title">
           <span class="title-icon">🔥</span>
-          热门社团
+          当前社团
         </h2>
-        <p class="section-subtitle">最受同学们欢迎的社团</p>
+        <p class="section-subtitle">数据来自演示库，不虚构热度与成功率</p>
       </div>
 
       <div class="clubs-grid">
@@ -207,9 +207,9 @@ const selectCategory = (categoryId: string) => {
           <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
             <span class="feature-icon">✨</span>
           </div>
-          <h3 class="feature-title">AI 智能匹配</h3>
+          <h3 class="feature-title">规则负责决策</h3>
           <p class="feature-description">
-            告诉我们你的兴趣和目标，AI 精准分析并为你推荐最适合的社团
+            时间、费用、校区和门槛是硬约束，固定权重产生可复现分数
           </p>
         </div>
 
