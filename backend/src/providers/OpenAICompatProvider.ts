@@ -33,6 +33,7 @@ export class OpenAICompatProvider extends BaseProvider implements AIProvider {
       messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
       max_tokens: maxTokens,
       temperature: this.config.temperature ?? 0.7,
+      response_format: { type: 'json_object' },
     }, signal)
     const text = response.choices?.[0]?.message?.content
     if (!text) throw new AIError('INVALID_RESPONSE', 'No content in response', 'openai-compat')

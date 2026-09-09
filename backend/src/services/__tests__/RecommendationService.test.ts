@@ -45,17 +45,31 @@ function makeService(structured: unknown | Error) {
 
 describe('RecommendationService', () => {
   it('returns validated extracted preferences', async () => {
-    const { service } = makeService(preference)
+    const { service, provider } = makeService(preference)
     await expect(service.extractPreferences('周末想参加编程竞赛')).resolves.toMatchObject({
       preference, mode: 'ai-extracted',
     })
+    expect(provider.generateStructured).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining('"availableTimes"'),
+      expect.any(String),
+      500,
+      undefined,
+    )
   })
 
   it('keeps deterministic scores when AI writes explanations', async () => {
-    const { service } = makeService({ matches: [{ clubId: 1, reason: '兴趣和竞赛目标高度吻合，时间也合适。', caveats: [] }] })
+    const { service, provider } = makeService({ matches: [{ clubId: 1, reason: '兴趣和竞赛目标高度吻合，时间也合适。', caveats: [] }] })
     const result = await service.recommend(preference)
     expect(result.mode).toBe('hybrid')
     expect(result.matches[0]).toMatchObject({ score: 88, reason: '兴趣和竞赛目标高度吻合，时间也合适。' })
+    expect(provider.generateStructured).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.stringContaining('"clubId"'),
+      expect.any(String),
+      900,
+      undefined,
+    )
   })
 
   it('falls back to rule evidence when the model times out', async () => {

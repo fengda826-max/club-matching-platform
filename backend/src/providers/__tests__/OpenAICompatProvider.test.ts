@@ -36,7 +36,8 @@ describe('OpenAICompatProvider', () => {
   })
 
   it('returns validated structured data and usage', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(completion('{"value":7}')))
+    const fetchSpy = vi.fn().mockResolvedValue(completion('{"value":7}'))
+    vi.stubGlobal('fetch', fetchSpy)
     const provider = new OpenAICompatProvider(config)
 
     const result = await provider.generateStructured(
@@ -53,6 +54,7 @@ describe('OpenAICompatProvider', () => {
       model: 'deepseek-v4',
     })
     expect(result.durationMs).toBeGreaterThanOrEqual(0)
+    expect(JSON.parse(fetchSpy.mock.calls[0][1].body as string).response_format).toEqual({ type: 'json_object' })
   })
 
   it('rejects JSON that violates the requested schema', async () => {

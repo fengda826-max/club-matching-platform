@@ -44,7 +44,15 @@ export class RecommendationService {
 
   async extractPreferences(text: string, signal?: AbortSignal) {
     if (!this.provider) throw new AppError(503, 'AI_UNAVAILABLE', '自然语言解析暂不可用，请改用结构化表单')
-    const systemPrompt = '从用户的社团需求中提取偏好。只返回 JSON，不推测用户未表达的硬约束。'
+    const systemPrompt = `从用户的社团需求中提取偏好。只返回一个 JSON 对象，不要解释、Markdown 或额外字段。
+严格使用以下字段和类型：
+{"interests":["字符串"],"goals":["字符串"],"skillLevel":"beginner|intermediate|advanced|expert","availableTimes":["字符串"],"campus":"字符串（可省略）","maxWeeklyHours":整数（可省略）,"maxFee":整数（可省略）}
+规则：
+- 未表达的 interests、goals、availableTimes 返回空数组。
+- 未表达的可选字段直接省略，禁止返回 null。
+- “零基础/新手”映射 beginner；“有一定基础”映射 intermediate；“熟练”映射 advanced；“专家”映射 expert。
+- “免费/不想交会费”映射 maxFee=0；时间和费用只返回数字。
+- 不推测用户未表达的硬约束。`
     const userPrompt = `用户需求：${text}`
     try {
       const result = await this.provider.generateStructured(userPreferenceSchema, systemPrompt, userPrompt, 500, signal)
@@ -82,7 +90,9 @@ export class RecommendationService {
     try {
       const result = await this.provider.generateStructured(
         explanationSchema,
-        '你负责把已有规则证据写成简洁推荐理由。不得改变分数、添加候选之外的社团或编造事实。只返回 JSON。',
+        `你负责把已有规则证据写成简洁推荐理由。只返回一个 JSON 对象，不要解释或 Markdown。
+严格格式：{"matches":[{"clubId":候选社团整数ID,"reason":"10到240字的中文理由","caveats":["最多3条注意事项"]}]}
+每个候选 clubId 必须且只能出现一次，顺序与候选列表一致。不得改变分数、添加候选之外的社团、遗漏候选或编造事实。没有额外注意事项时 caveats 返回空数组。`,
         JSON.stringify({ preference, candidates }),
         900,
         signal,
