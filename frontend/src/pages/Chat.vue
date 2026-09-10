@@ -1,77 +1,80 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useClubsStore } from '@/stores/clubs'
 import { useUserStore } from '@/stores/user'
 import { apiClient, type ChatMessage as BackendChatMessage } from '@/api/client'
 import { streamChat } from '@/api/sse'
 import AnswerSources from '@/components/chat/AnswerSources.vue'
+import PageIntro from '@/components/layout/PageIntro.vue'
+import StatusPill from '@/components/ui/StatusPill.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 
 const clubsStore = useClubsStore()
 const userStore = useUserStore()
-
 const inputMessage = ref('')
 const isLoading = ref(false)
 const chatContainer = ref<HTMLElement | null>(null)
 const activeController = ref<AbortController | null>(null)
-
-const backendAvailable = ref(true)
+const connection = ref<'checking' | 'online' | 'unavailable' | 'offline'>('checking')
+const configuredModel = ref('')
 const messages = computed(() => userStore.chatHistory)
+const hasValidBackend = computed(() => connection.value === 'online')
+const connectionStatus = computed(() => ({
+  checking: { tone: 'neutral' as const, label: '正在检查连接' },
+  online: { tone: 'success' as const, label: '已连接' },
+  unavailable: { tone: 'warning' as const, label: 'AI 暂不可用' },
+  offline: { tone: 'danger' as const, label: '服务未连接' },
+})[connection.value])
+const latestAnswer = computed(() => [...messages.value].reverse().find(message => message.role === 'assistant'))
+const modelLabel = computed(() => latestAnswer.value?.model || configuredModel.value || '模型待确认')
+const generationStatus = computed(() => {
+  if (isLoading.value) return '正在生成'
+  if (latestAnswer.value?.error === '已停止生成') return '已停止生成'
+  if (latestAnswer.value?.error) return '回答中断，可重新提问'
+  return latestAnswer.value ? '回答已完成' : '等待提问'
+})
 
 async function checkBackendHealth() {
+  connection.value = 'checking'
   try {
-    await apiClient.ai.health()
-    backendAvailable.value = true
-  } catch (err) {
-    console.error('Backend not available:', err)
-    backendAvailable.value = false
+    const health = await apiClient.ai.health()
+    connection.value = health.healthy ? 'online' : 'unavailable'
+    configuredModel.value = typeof health.provider?.model === 'string' ? health.provider.model : ''
+  } catch {
+    connection.value = 'offline'
   }
 }
 
 onMounted(async () => {
-  checkBackendHealth()
-  // Fetch clubs if not already loaded (chat needs club list for context)
+  void checkBackendHealth()
+  // Preserve the real club context loaded by the existing chat workflow.
   if (clubsStore.clubs.length === 0) {
     try {
       await clubsStore.fetchClubs()
       await clubsStore.fetchStatistics()
-    } catch (err) {
-      console.error('Failed to load clubs:', err)
+    } catch (error) {
+      console.error('Failed to load clubs:', error)
     }
   }
 })
+onBeforeUnmount(() => activeController.value?.abort())
 
-const hasValidBackend = computed(() => backendAvailable.value)
-
-const suggestedQuestions = [
-  '有哪些技术类社团？',
-  '我想加入篮球社团，有什么要求？',
-  '哪个社团最适合编程初学者？',
-  '社团活动时间是怎样的？',
-  '摄影协会需要自备相机吗？',
-  '有哪些社团不需要基础就能加入？',
-  'AI社团需要什么基础？',
-  '舞蹈协会有哪些舞种？',
+const questionGroups = [
+  { title: '找到方向', questions: ['有哪些技术类社团？', '哪个社团最适合编程初学者？'] },
+  { title: '了解门槛', questions: ['有哪些社团不需要基础就能加入？', 'AI社团需要什么基础？'] },
+  { title: '安排时间与装备', questions: ['社团活动时间是怎样的？', '摄影协会需要自备相机吗？'] },
+  { title: '探索具体社团', questions: ['我想加入篮球社团，有什么要求？', '舞蹈协会有哪些舞种？'] },
 ]
 
 watch(messages, () => {
   nextTick(() => {
-    if (chatContainer.value) {
-      chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-    }
+    if (chatContainer.value) chatContainer.value.scrollTop = chatContainer.value.scrollHeight
   })
-})
+}, { deep: true })
 
 const sendMessage = async () => {
   const message = inputMessage.value.trim()
-  if (!message) {
-    return
-  }
-
-  if (!hasValidBackend.value) {
-    ElMessage.warning('后端服务不可用，请检查后端是否启动')
-    return
-  }
+  if (!message || isLoading.value || !hasValidBackend.value) return
 
   userStore.addUserMessage(message)
   inputMessage.value = ''
@@ -81,7 +84,6 @@ const sendMessage = async () => {
   activeController.value = controller
 
   try {
-    // Convert to backend format
     const history: BackendChatMessage[] = userStore.chatHistory.slice(0, -2).map(msg => ({
       role: msg.role,
       content: msg.content,
@@ -106,670 +108,168 @@ const sendMessage = async () => {
 }
 
 const cancelMessage = () => activeController.value?.abort()
-
 const clearChat = () => {
+  if (isLoading.value || !messages.value.length) return
   userStore.clearChatHistory()
-  ElMessage.success('对话已清空')
 }
-
 const useSuggestedQuestion = (question: string) => {
+  if (isLoading.value) return
   inputMessage.value = question
-  sendMessage()
+  void sendMessage()
+}
+const retryMessage = (index: number) => {
+  const question = messages.value[index - 1]
+  if (question?.role === 'user') useSuggestedQuestion(question.content)
 }
 </script>
 
 <template>
   <div class="chat-page">
-    <!-- Floating Elements -->
-    <div class="floating-elements">
-      <div class="float-item" style="--delay: 0s; --x: 10%; --y: 20%">💬</div>
-      <div class="float-item" style="--delay: -3s; --x: 90%; --y: 60%">🎨</div>
-      <div class="float-item" style="--delay: -6s; --x: 15%; --y: 80%">📚</div>
-    </div>
+    <PageIntro>
+      AI 问答
+      <template #description><p>把入社要求、活动安排和选择顾虑问清楚，结合社团资料做决定。</p></template>
+      <template #aside><span class="context-note">基于社团资料的对话</span></template>
+    </PageIntro>
 
-    <!-- Header -->
-    <section class="page-header">
-      <div class="header-pattern"></div>
-      <div class="header-content">
-        <div class="header-icon">
-          <span class="icon-emoji">💬</span>
+    <section class="chat-panel" aria-label="AI 社团顾问工作台">
+      <header class="workspace-status">
+        <div class="model-status">
+          <strong>社团顾问</strong>
+          <span class="model-name">{{ modelLabel }}</span>
         </div>
-        <div class="header-text">
-          <h1 class="page-title">AI 问答</h1>
-          <p class="page-subtitle">有任何关于社团的问题？AI助手随时为你解答</p>
+        <div class="status-items">
+          <StatusPill :tone="connectionStatus.tone" :label="connectionStatus.label" />
+          <span class="generation-status" role="status">{{ generationStatus }}</span>
+        </div>
+      </header>
+
+      <div ref="chatContainer" class="chat-messages" role="log" aria-label="社团问答记录" aria-live="polite" aria-relevant="additions text" tabindex="0">
+        <EmptyState v-if="connection === 'offline' || connection === 'unavailable'" class="connection-empty"
+          :title="connection === 'offline' ? '暂时无法连接服务' : 'AI 暂不可用'"
+          description="可以继续查看对话、整理问题。连接恢复后再发送。">
+          <template #action><button type="button" class="button-secondary" @click="checkBackendHealth">重新连接</button></template>
+        </EmptyState>
+
+        <div v-if="messages.length === 0" class="chat-empty">
+          <div class="empty-intro">
+            <span class="section-kicker">从一个具体问题开始</span>
+            <h2>找到适合自己的校园生活</h2>
+            <p>问清时间、基础与投入。回答会附上本次参考的社团资料，方便你核对。</p>
+          </div>
+          <section class="suggested-questions" aria-labelledby="suggested-heading">
+            <h3 id="suggested-heading">你可以这样问</h3>
+            <div class="questions-grid">
+              <div v-for="group in questionGroups" :key="group.title" class="question-group">
+                <h4>{{ group.title }}</h4>
+                <button v-for="question in group.questions" :key="question" type="button" class="suggested-question"
+                  :disabled="isLoading" @click="useSuggestedQuestion(question)">{{ question }}</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div v-else class="messages-list">
+          <article v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]" :aria-label="msg.role === 'user' ? '你的问题' : 'AI 顾问回答'">
+            <div class="message-content">
+              <header class="message-header">
+                <strong>{{ msg.role === 'user' ? '你' : 'AI 社团顾问' }}</strong>
+                <time :datetime="new Date(msg.timestamp).toISOString()">{{ new Date(msg.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }}</time>
+              </header>
+              <div class="message-text">{{ msg.content || (isLoading && index === messages.length - 1 ? '正在整理社团资料…' : '本次没有生成正文。') }}</div>
+              <template v-if="msg.role === 'assistant'">
+                <AnswerSources :sources="msg.sources || []" :pending="isLoading && index === messages.length - 1 && !msg.sources" />
+                <div v-if="msg.model || msg.durationMs !== undefined" class="message-meta">
+                  <span v-if="msg.model">{{ msg.model }}</span>
+                  <span v-if="msg.durationMs !== undefined">耗时 {{ (msg.durationMs / 1000).toFixed(1) }} 秒</span>
+                </div>
+                <div v-if="msg.error" class="message-error" :class="{ stopped: msg.error === '已停止生成' }" :role="msg.error === '已停止生成' ? 'status' : 'alert'">
+                  <p>{{ msg.error }}</p>
+                  <button type="button" class="button-secondary" :disabled="isLoading || !hasValidBackend" @click="retryMessage(index)">重新提问</button>
+                </div>
+              </template>
+            </div>
+          </article>
         </div>
       </div>
+
+      <form class="chat-composer" aria-label="提问输入区" @submit.prevent="sendMessage">
+        <label for="chat-question">向 AI 社团顾问提问</label>
+        <textarea id="chat-question" v-model="inputMessage" aria-label="向 AI 社团顾问提问" aria-describedby="composer-help"
+          rows="2" placeholder="例如：零基础可以加入编程社吗？每周需要多少时间？" @keydown.ctrl.enter.prevent="sendMessage" />
+        <div class="composer-footer">
+          <span id="composer-help">Enter 换行 · Ctrl+Enter 发送</span>
+          <div class="composer-actions">
+            <button type="button" class="button-secondary" :disabled="!messages.length || isLoading" @click="clearChat">清空对话</button>
+            <button type="button" class="button-secondary" :disabled="!isLoading" @click="cancelMessage">停止生成</button>
+            <button type="submit" class="button-primary" :disabled="!inputMessage.trim() || isLoading || !hasValidBackend">发送</button>
+          </div>
+        </div>
+      </form>
     </section>
-
-    <!-- Backend Warning -->
-    <div class="api-warning" v-if="!hasValidBackend">
-      <div class="warning-card">
-        <div class="warning-icon">⚠️</div>
-        <h3>后端服务未连接</h3>
-        <p>请先启动后端服务：<code>cd backend &amp;&amp; npm run dev</code></p>
-      </div>
-    </div>
-
-    <div class="content-wrapper">
-      <!-- Chat Container -->
-      <div class="chat-container">
-        <div class="chat-messages" ref="chatContainer">
-          <!-- Empty State -->
-          <div v-if="messages.length === 0" class="chat-empty">
-            <div class="empty-icon">
-              <span class="pulse">💬</span>
-            </div>
-            <p class="empty-title">开始提问吧！</p>
-            <p class="empty-hint">你可以询问社团信息、入社要求、活动时间等任何问题</p>
-
-            <div class="suggested-questions">
-              <h4 class="suggested-title">推荐问题：</h4>
-              <div class="questions-grid">
-                <button
-                  v-for="question in suggestedQuestions"
-                  :key="question"
-                  class="suggested-question"
-                  @click="useSuggestedQuestion(question)"
-                >
-                  {{ question }}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Messages -->
-          <div v-else class="messages-list">
-            <div
-              v-for="(msg, index) in messages"
-              :key="index"
-              :class="['message', msg.role]"
-            >
-              <div class="message-content">
-                <div class="message-header">
-                  <span class="message-icon">
-                    <template v-if="msg.role === 'user'">👤</template>
-                    <template v-else>🤖</template>
-                  </span>
-                  <span class="message-role">
-                    {{ msg.role === 'user' ? '你' : 'AI助手' }}
-                  </span>
-                  <span class="message-time">
-                    {{ new Date(msg.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }}
-                  </span>
-                </div>
-                <div class="message-text">{{ msg.content }}</div>
-                <AnswerSources v-if="msg.role === 'assistant' && msg.sources" :sources="msg.sources" />
-                <div v-if="msg.role === 'assistant' && (msg.model || msg.durationMs !== undefined)" class="message-meta">
-                  {{ msg.model || '模型' }}<template v-if="msg.durationMs !== undefined"> · {{ msg.durationMs }} ms</template>
-                </div>
-                <div v-if="msg.error" class="message-error">{{ msg.error }}</div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Input Area -->
-        <div class="chat-input-area">
-          <div class="input-wrapper">
-            <input
-              v-model="inputMessage"
-              type="text"
-              class="chat-input"
-              placeholder="输入你的问题..."
-              @keyup.ctrl.enter="sendMessage"
-              :disabled="isLoading || !hasValidBackend"
-            />
-            <button class="send-button" :disabled="!inputMessage.trim() || isLoading || !hasValidBackend" @click="sendMessage">
-              <span class="send-icon">🚀</span>
-            </button>
-          </div>
-          <div class="input-actions">
-            <button v-if="isLoading" class="action-button secondary" @click="cancelMessage">停止生成</button>
-            <button
-              v-if="messages.length > 0"
-              class="action-button secondary"
-              @click="clearChat"
-            >
-              <span class="action-icon">🗑️</span>
-              <span>清空对话</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <p class="workspace-footnote">AI 回答仅供参考，具体招募与活动安排请以社团最新通知为准。</p>
   </div>
 </template>
 
 <style scoped>
-.chat-page {
-  min-height: 100vh;
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Floating Elements */
-.floating-elements {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.float-item {
-  position: absolute;
-  font-size: var(--size);
-  opacity: 0.08;
-  animation: float 25s ease-in-out infinite;
-  animation-delay: var(--delay);
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg) scale(1);
-  }
-  50% {
-    transform: translateY(-30px) rotate(10deg) scale(1.05);
-  }
-}
-
-/* Page Header */
-.page-header {
-  position: relative;
-  padding: 60px 20px 40px;
-  overflow: hidden;
-}
-
-.header-pattern {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(46, 134, 171, 0.1) 0%, transparent 50%);
-  animation: patternMove 30s ease-in-out infinite;
-}
-
-@keyframes patternMove {
-  0%, 100% {
-    transform: scale(1) translate(0);
-  }
-  50% {
-    transform: scale(1.05) translate(5px, -5px);
-  }
-}
-
-.header-content {
-  position: relative;
-  max-width: 900px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  z-index: 1;
-}
-
-.header-icon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.25);
-  animation: bounce 3s ease-in-out infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.icon-emoji {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.header-text {
-  flex: 1;
-}
-
-.page-title {
-  font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--color-dark);
-  margin-bottom: 8px;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  font-size: 18px;
-  color: var(--color-gray-600);
-}
-
-/* API Warning */
-.api-warning {
-  margin-bottom: 40px;
-}
-
-.warning-card {
-  background: rgba(245, 158, 11, 0.95);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(245, 158, 11, 0.3);
-  border-radius: var(--radius-lg);
-  padding: 32px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  animation: slideDown 0.4s ease-out;
-}
-
-.warning-icon {
-  font-size: 48px;
-}
-
-.warning-card h3 {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-}
-
-.warning-card p {
-  color: var(--color-gray-600);
-  margin-bottom: 0;
-}
-
-.code-block {
-  background: var(--color-gray-900);
-  color: #F8F9FA;
-  padding: 16px 24px;
-  border-radius: var(--radius-md);
-  font-family: monospace;
-  font-size: 14px;
-  overflow-x: auto;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Content Wrapper */
-.content-wrapper {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-/* Chat Container */
-.chat-container {
-  background: white;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 200px);
-  overflow: hidden;
-  animation: slideUp 0.6s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Chat Messages */
-.chat-messages {
-  flex: 1;
-  padding: 32px;
-  overflow-y: auto;
-  background: var(--color-gray-50);
-}
-
-/* Chat Empty State */
-.chat-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.empty-icon {
-  font-size: 80px;
-  margin-bottom: 24px;
-  animation: bounce 2s ease-in-out infinite;
-}
-
-.pulse {
-  display: inline-block;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.empty-title {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-}
-
-.empty-hint {
-  color: var(--color-gray-600);
-  font-size: 16px;
-  margin-bottom: 40px;
-}
-
-/* Suggested Questions */
-.suggested-questions {
-  width: 100%;
-  max-width: 800px;
-}
-
-.suggested-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-dark);
-  margin-bottom: 20px;
-}
-
-.questions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.suggested-question {
-  padding: 14px 24px;
-  background: var(--color-gray-100);
-  border: 2px solid var(--color-gray-200);
-  border-radius: var(--radius-full);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-dark);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: left;
-}
-
-.suggested-question:hover {
-  background: rgba(255, 107, 107, 0.1);
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
-}
-
-/* Messages List */
-.messages-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding-bottom: 20px;
-}
-
-.message {
-  display: flex;
-}
-
-.message.user {
-  justify-content: flex-end;
-}
-
-.message.assistant {
-  justify-content: flex-start;
-}
-
-.message-content {
-  max-width: 80%;
-  padding: 20px 24px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  animation: slideIn 0.4s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.message.user .message-content {
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
-  color: white;
-}
-
-.message.assistant .message-content {
-  background: white;
-  color: var(--color-dark);
-}
-
-.message-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.message-icon {
-  font-size: 20px;
-}
-
-.message-role {
-  font-weight: 600;
-  font-size: 13px;
-  opacity: 0.8;
-}
-
-.message-time {
-  font-size: 12px;
-  opacity: 0.6;
-  margin-left: auto;
-}
-
-.message-text {
-  line-height: 1.7;
-  word-break: break-word;
-}
-
-.message-meta { margin-top: 10px; font-size: 12px; color: var(--color-gray-600); }
-.message-error { margin-top: 10px; font-size: 13px; color: var(--color-primary-dark); }
-
-.message-text.loading-text {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.loading-pulse {
-  width: 12px;
-  height: 12px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  animation: loadingPulse 1s ease-in-out infinite;
-}
-
-@keyframes loadingPulse {
-  0%, 100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* Input Area */
-.chat-input-area {
-  padding: 24px 32px;
-  background: var(--color-gray-100);
-  border-top: 1px solid var(--color-gray-200);
-}
-
-.input-wrapper {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.chat-input {
-  flex: 1;
-  padding: 18px 24px;
-  font-size: 16px;
-  border: 2px solid var(--color-gray-200);
-  border-radius: var(--radius-full);
-  outline: none;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.chat-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2);
-}
-
-.chat-input:disabled {
-  background: var(--color-gray-100);
-  cursor: not-allowed;
-}
-
-.chat-input::placeholder {
-  color: var(--color-gray-600);
-}
-
-.send-button {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  border: none;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 24px;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-}
-
-.send-button:hover:not(.disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-}
-
-.send-button.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.send-icon {
-  animation: float 4s ease-in-out infinite;
-}
-
-/* Input Actions */
-.input-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.action-button {
-  padding: 12px 24px;
-  background: transparent;
-  color: var(--color-gray-600);
-  border: 2px solid var(--color-gray-300);
-  border-radius: var(--radius-full);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.action-button:hover {
-  background: rgba(255, 107, 107, 0.1);
-  color: var(--color-secondary);
-  border-color: var(--color-secondary);
-  transform: translateY(-2px);
-}
-
-.action-icon {
-  font-size: 16px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .page-title {
-    font-size: 28px;
-  }
-
-  .header-content {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .chat-container {
-    height: calc(100vh - 160px);
-  }
-
-  .questions-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .message-content {
-    max-width: 95%;
-  }
-
-  .input-wrapper {
-    flex-direction: column;
-  }
+.chat-page { width: min(calc(100% - 64px), var(--content-app)); margin-inline: auto; padding-bottom: 32px; }
+.context-note, .workspace-footnote { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+.chat-panel { display: flex; flex-direction: column; height: clamp(560px, calc(100dvh - 290px), 800px); overflow: hidden; border: 1px solid var(--border-moss); border-radius: var(--radius-panel); background: var(--surface); }
+.workspace-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 18px 24px; border-bottom: 1px solid var(--border-moss); }
+.model-status { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; min-width: 0; }
+.model-status strong { color: var(--text-ink); font-size: 16px; }
+.model-name { color: var(--text-muted); font-size: 14px; overflow-wrap: anywhere; }
+.status-items { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.generation-status { color: var(--text-muted); font-size: 14px; }
+.chat-messages { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 28px; background: var(--field-paper); }
+.connection-empty { margin-bottom: 24px; }
+.chat-empty { max-width: 820px; margin: 0 auto; }
+.empty-intro { margin-bottom: 24px; }
+.section-kicker { color: var(--campus-green); font-size: 14px; font-weight: 650; }
+.empty-intro h2 { margin: 10px 0 12px; color: var(--text-ink); font-size: clamp(22px, 2.4vw, 28px); font-weight: 750; }
+.empty-intro p { max-width: 64ch; margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.8; }
+.suggested-questions h3 { margin: 0 0 14px; color: var(--text-ink); font-size: 16px; }
+.questions-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.question-group { min-width: 0; }
+.question-group h4 { margin: 0 0 8px; font-size: 14px; font-weight: 500; color: var(--text-muted); }
+.suggested-question { display: block; width: 100%; min-height: 44px; padding: 10px 12px; margin-top: 8px; border: 1px solid var(--border-moss); border-radius: var(--radius-control); background: var(--surface); color: var(--ink-forest); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.suggested-question:hover { border-color: var(--campus-green); }
+.messages-list { display: flex; flex-direction: column; gap: 24px; }
+.message { display: flex; min-width: 0; }
+.message.user { justify-content: flex-end; }
+.message-content { max-width: min(88%, 760px); min-width: 0; padding: 18px 20px; border: 1px solid var(--border-moss); border-radius: var(--radius-card); background: var(--surface); }
+.user .message-content { background: var(--ink-forest); color: var(--surface); border-color: var(--ink-forest); }
+.message-header { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 12px; font-size: 14px; }
+.message-header time { white-space: nowrap; color: var(--text-muted); }
+.user time { color: var(--surface); }
+.message-text { font-size: 16px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.message-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; color: var(--text-muted); font-size: 14px; overflow-wrap: anywhere; }
+.message-error { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-moss); color: var(--danger); font-size: 14px; overflow-wrap: anywhere; }
+.message-error p { margin: 0 0 10px; line-height: 1.6; }
+.message-error.stopped { color: var(--text-muted); }
+.chat-composer { position: sticky; bottom: 0; z-index: 1; flex-shrink: 0; padding: 18px 24px; border-top: 1px solid var(--border-moss); background: var(--surface); }
+.chat-composer label { display: block; margin-bottom: 8px; color: var(--text-ink); font-size: 14px; font-weight: 650; }
+.chat-composer textarea { display: block; width: 100%; min-height: 76px; max-height: 160px; padding: 12px; border: 1px solid var(--border-moss); border-radius: var(--radius-control); background: var(--surface); color: var(--text-ink); font: inherit; font-size: 16px; line-height: 1.5; resize: vertical; }
+.chat-composer textarea::placeholder { color: var(--text-muted); }
+.composer-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+#composer-help { color: var(--text-muted); font-size: 14px; }
+.composer-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+button { min-width: 44px; min-height: 44px; }
+button:disabled { cursor: not-allowed; }
+.chat-page :is(button, textarea, [tabindex]):focus-visible { outline: 3px solid var(--campus-green); outline-offset: 3px; }
+.workspace-footnote { margin: 14px 0 0; }
+@media (max-width: 820px) {
+  .chat-page { width: calc(100% - 36px); }
+  .context-note { display: none; }
+  .workspace-status { padding: 14px 16px; }
+  .chat-messages { padding: 20px 16px; }
+  .chat-composer { padding: 14px 16px; }
+  .message-content { max-width: 95%; padding: 16px; }
+}
+@media (max-width: 520px) {
+  .chat-panel { height: max(590px, calc(100dvh - 250px)); }
+  .questions-grid { grid-template-columns: 1fr; gap: 16px; }
+  .composer-footer { gap: 10px; }
+  .composer-actions { width: 100%; justify-content: space-between; }
+  .composer-actions button { padding-inline: 12px; }
 }
 </style>
