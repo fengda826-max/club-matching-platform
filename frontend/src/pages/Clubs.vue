@@ -1,1115 +1,296 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useClubsStore } from '@/stores/clubs'
-import type { Club } from '@/types'
 import { apiClient } from '@/api/client'
-import { ElMessage } from 'element-plus'
+import type { Club } from '@/types'
+import PageIntro from '@/components/layout/PageIntro.vue'
+import CategoryMark from '@/components/ui/CategoryMark.vue'
+import DecisionFact from '@/components/ui/DecisionFact.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import StatusPill from '@/components/ui/StatusPill.vue'
 
 const route = useRoute()
 const clubsStore = useClubsStore()
-
+const filtersExpanded = ref(false)
+const loadError = ref(false)
 const selectedClub = ref<Club | null>(null)
-const showDetails = ref(false)
-const hoveredClub = ref<string | null>(null)
-
-onMounted(async () => {
-  if (route.query.search) {
-    clubsStore.setSearchQuery(route.query.search as string)
-  }
-  if (route.query.category) {
-    clubsStore.setSelectedCategory(route.query.category as string)
-  }
-  // Always fetch fresh data from backend when entering this page
-  try {
-    await clubsStore.fetchClubs()
-    await clubsStore.fetchStatistics()
-  } catch (err) {
-    console.error('Failed to load clubs:', err)
-  }
-})
+const dialog = ref<HTMLElement | null>(null)
+const closeButton = ref<HTMLButtonElement | null>(null)
+const recording = ref(false)
+const intentMessage = ref('')
+const intentError = ref(false)
+let returnFocus: HTMLElement | null = null
+let previousOverflow = ''
 
 const filteredClubs = computed(() => clubsStore.filteredClubs)
+const activeFilters = computed(() => [
+  clubsStore.searchQuery ? `“${clubsStore.searchQuery}”` : '',
+  clubsStore.selectedCategory,
+  ...clubsStore.selectedTags,
+].filter(Boolean))
+const filterSummary = computed(() => [
+  ...activeFilters.value,
+  clubsStore.loading ? '正在加载社团' : `${filteredClubs.value.length} 个结果`,
+].join(' · '))
+const skillLabels: Record<Club['skillRequirement'], string> = {
+  beginner: '零基础可加入', intermediate: '需要一定基础', advanced: '需要进阶经验', expert: '需要专业经验',
+}
+const skillLabel = (club: Pick<Club, 'skillRequirement'>) => skillLabels[club.skillRequirement] || '门槛待确认'
+const feeLabel = (club: Pick<Club, 'fee'>) => club.fee === 0 ? '免费' : `${club.fee} 元`
 
-const handleSearch = (value: string) => {
-  clubsStore.setSearchQuery(value)
+async function loadClubs() {
+  loadError.value = false
+  try {
+    await clubsStore.fetchClubs()
+  } catch {
+    loadError.value = true
+  }
+  // Statistics still refresh, but their outage must not hide a usable club list.
+  try {
+    await clubsStore.fetchStatistics()
+  } catch {
+    // The store logs the failure; this page does not display statistics.
+  }
 }
 
-const handleCategoryChange = (value: string) => {
-  clubsStore.setSelectedCategory(value)
-}
+onMounted(() => {
+  if (typeof route.query.search === 'string') clubsStore.setSearchQuery(route.query.search)
+  if (typeof route.query.category === 'string') clubsStore.setSelectedCategory(route.query.category)
+  void loadClubs()
+})
 
-const toggleTag = (tag: string) => {
-  clubsStore.toggleTag(tag)
-}
-
-const clearFilters = () => {
-  clubsStore.clearFilters()
-}
-
-const showClubDetails = (club: Club) => {
+async function showClubDetails(club: Club, event: MouseEvent) {
+  returnFocus = event.currentTarget as HTMLElement
+  previousOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+  intentMessage.value = ''
+  intentError.value = false
   selectedClub.value = club
-  showDetails.value = true
+  await nextTick()
+  closeButton.value?.focus()
 }
 
-const applyToClub = async (club: Club) => {
-  if (!club.isRecruiting) return
+async function closeDetails() {
+  selectedClub.value = null
+  document.body.style.overflow = previousOverflow
+  await nextTick()
+  returnFocus?.focus()
+}
+
+function handleDialogKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    void closeDetails()
+  } else if (event.key === 'Tab') {
+    const controls = dialog.value?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], [tabindex="0"]')
+    const first = controls?.[0]
+    const last = controls?.[controls.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last?.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first?.focus()
+    }
+  }
+}
+
+async function applyToClub(club: Club) {
+  if (!club.isRecruiting || recording.value) return
+  recording.value = true
+  intentMessage.value = ''
+  intentError.value = false
   try {
     const result = await apiClient.intents.record({ clubId: club.id, source: 'browsing' })
-    ElMessage.success(result.created ? '意向已记录' : '这条意向已经记录过')
+    if (selectedClub.value?.id === club.id) intentMessage.value = result.created ? '意向已记录' : '这条意向已经记录过'
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '记录失败')
+    if (selectedClub.value?.id === club.id) {
+      intentError.value = true
+      intentMessage.value = error instanceof Error ? error.message : '记录失败，请稍后重试'
+    }
+  } finally {
+    recording.value = false
   }
 }
 
-const getCategoryEmoji = (category: string) => {
-  const emojiMap: Record<string, string> = {
-    '技术': '💻',
-    '体育': '⚽',
-    '艺术': '🎨',
-    '学术': '📚',
-    '文化': '🌍',
-  }
-  return emojiMap[category] || '🎯'
-}
-
-const getCategoryColor = (category: string) => {
-  const colorMap: Record<string, string> = {
-    '技术': 'category-tech',
-    '体育': 'category-sports',
-    '艺术': 'category-arts',
-    '学术': 'category-academic',
-    '文化': 'category-cultural',
-  }
-  return colorMap[category] || 'category-default'
-}
+onUnmounted(() => {
+  if (selectedClub.value) document.body.style.overflow = previousOverflow
+})
 </script>
 
 <template>
-  <div class="clubs-page">
-    <!-- Floating Elements -->
-    <div class="floating-elements">
-      <div class="float" style="--delay: 0s; --x:; 10%; --y: 15%; --size: 80px">🔍</div>
-      <div class="float" style="--delay: -5s; --x: 85%; --y: 30%; --size: 60px">🎯</div>
-    </div>
-
-    <!-- Header -->
-    <section class="page-header">
-      <div class="header-pattern"></div>
-      <div class="header-content">
-        <div class="header-icon">
-          <span class="icon-emoji">🎯</span>
-        </div>
-        <div class="header-text">
-          <h1 class="page-title">社团列表</h1>
-          <p class="page-subtitle">浏览所有社团，找到最适合你的兴趣社群</p>
-        </div>
-      </div>
-    </section>
-
-    <div class="content-wrapper">
-      <!-- Filters -->
-      <section class="filters-section">
-        <div class="filter-card">
-          <div class="filter-row">
-            <div class="filter-item filter-search">
-              <label>搜索</label>
-              <div class="search-wrapper">
-                <input
-                  v-model="clubsStore.searchQuery"
-                  type="text"
-                  class="search-input"
-                  placeholder="搜索社团名称、标签或关键词..."
-                  @input="(e: Event) => handleSearch((e.target as HTMLInputElement).value)"
-                />
-                <button class="search-clear" v-if="clubsStore.searchQuery" @click="handleSearch('')">
-                  ✕
+  <div class="clubs-page content-wide">
+    <div :inert="selectedClub ? true : undefined">
+      <PageIntro>
+        发现社团
+        <template #description>从兴趣出发，也看看时间、校区和入社门槛。找到适合你校园生活的社团。</template>
+      </PageIntro>
+      <div class="discovery-layout">
+        <aside class="filter-sidebar" aria-label="社团筛选">
+          <button class="filter-toggle button-secondary" aria-controls="club-filters" :aria-expanded="filtersExpanded" @click="filtersExpanded = !filtersExpanded">
+            筛选条件 <span aria-hidden="true">{{ filtersExpanded ? '−' : '+' }}</span>
+          </button>
+          <div id="club-filters" class="filter-panel" :class="{ expanded: filtersExpanded }">
+            <h2>筛选社团</h2>
+            <div class="search-field">
+              <label for="club-search">关键词</label>
+              <input id="club-search" :value="clubsStore.searchQuery" type="search" aria-label="搜索社团" placeholder="名称、描述或标签" @input="clubsStore.setSearchQuery(($event.target as HTMLInputElement).value)" />
+            </div>
+            <fieldset>
+              <legend>社团分类</legend>
+              <div class="category-options">
+                <button class="filter-option" aria-label="分类：全部" :aria-pressed="!clubsStore.selectedCategory" @click="clubsStore.setSelectedCategory('')">全部</button>
+                <button v-for="category in clubsStore.categories" :key="category.id" class="filter-option" :aria-label="`分类：${category.name}`" :aria-pressed="clubsStore.selectedCategory === category.name" @click="clubsStore.setSelectedCategory(category.name)">
+                  <CategoryMark :category="category.name" size="sm" />
                 </button>
               </div>
-            </div>
+            </fieldset>
+            <fieldset v-if="clubsStore.allTags.length">
+              <legend>兴趣标签</legend>
+              <p class="filter-hint">可多选，匹配任一标签</p>
+              <div class="tag-options">
+                <button v-for="tag in clubsStore.allTags" :key="tag" class="filter-option tag-option" :aria-label="`标签：${tag}`" :aria-pressed="clubsStore.selectedTags.includes(tag)" @click="clubsStore.toggleTag(tag)">{{ tag }}</button>
+              </div>
+            </fieldset>
+            <button v-if="activeFilters.length" class="clear-button button-secondary" @click="clubsStore.clearFilters()">清除筛选</button>
           </div>
-          <div class="filter-row">
-            <div class="filter-item">
-              <label>分类</label>
-              <div class="category-chips">
-                <button
-                  :class="['category-chip', { active: clubsStore.selectedCategory === 'all' || !clubsStore.selectedCategory }]"
-                  @click="clearFilters()"
-                >
-                  全部
-                </button>
-                <button
-                  v-for="cat in clubsStore.categories"
-                  :key="cat.name"
-                  :class="['category-chip', { active: clubsStore.selectedCategory === cat.name }]"
-                  @click="handleCategoryChange(cat.name)"
-                >
-                  <span class="chip-icon">{{ cat.icon }}</span>
-                  <span>{{ cat.name }}</span>
-                </button>
-              </div>
-            </div>
+        </aside>
+        <section class="results-section" aria-labelledby="results-heading" :aria-busy="clubsStore.loading">
+          <div class="results-header">
+            <h2 id="results-heading">社团列表</h2>
+            <p class="filter-summary" aria-live="polite" aria-atomic="true">{{ filterSummary }}</p>
           </div>
-          <div class="filter-row" v-if="clubsStore.allTags.length > 0">
-            <div class="filter-item">
-              <label>标签</label>
-              <div class="tag-chips">
-                <button
-                  v-for="tag in clubsStore.allTags"
-                  :key="tag"
-                  :class="['tag-chip', { active: clubsStore.selectedTags.includes(tag) }]"
-                  @click="toggleTag(tag)"
-                >
-                  {{ tag }}
-                </button>
+          <p v-if="clubsStore.loading" class="loading-state">正在加载社团资料，请稍候。</p>
+          <EmptyState v-else-if="loadError" role="alert" title="社团资料暂时无法加载" description="请检查服务连接，然后重试。你的筛选条件已保留。">
+            <template #action><button class="button-primary" @click="loadClubs">重新加载</button></template>
+          </EmptyState>
+          <EmptyState v-else-if="!filteredClubs.length" title="没有找到符合条件的社团" :description="activeFilters.length ? `当前条件：${activeFilters.join(' · ')}。清除这些条件，查看全部社团。` : '暂时还没有社团资料，请稍后再来看看。'">
+            <template v-if="activeFilters.length" #action><button class="button-primary" @click="clubsStore.clearFilters()">清除筛选</button></template>
+          </EmptyState>
+          <div v-else class="clubs-grid">
+            <article v-for="club in filteredClubs" :key="club.id" class="club-card" :aria-labelledby="`club-name-${club.id}`">
+              <div class="club-header">
+                <CategoryMark :category="club.category" />
+                <StatusPill :tone="club.isRecruiting ? 'success' : 'neutral'" :label="club.isRecruiting ? '招募中' : '暂停招新'" />
               </div>
-            </div>
-          </div>
-          <div class="filter-actions">
-            <button
-              v-if="
-                clubsStore.searchQuery ||
-                clubsStore.selectedCategory ||
-                clubsStore.selectedTags.length > 0
-              "
-              class="clear-button"
-              @click="clearFilters"
-            >
-              <span>🔄</span>
-              <span>清除筛选</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Clubs Grid -->
-      <section class="clubs-section">
-        <div v-if="clubsStore.loading" class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <p class="empty-text">加载中...</p>
-        </div>
-        <div v-else-if="filteredClubs.length === 0" class="empty-state">
-          <div class="empty-icon">🔍</div>
-          <p class="empty-text">没有找到符合条件的社团</p>
-          <p class="empty-hint">尝试调整筛选条件？</p>
-        </div>
-
-        <div v-else class="clubs-grid">
-          <div
-            v-for="(club, index) in filteredClubs"
-            :key="club.id"
-            class="club-card"
-            :class="{ hovered: hoveredClub === String(club.id) }"
-            @mouseenter="hoveredClub = String(club.id)"
-            @mouseleave="hoveredClub = null"
-            @click="showClubDetails(club)"
-            :style="{ '--delay': (index * 0.1) + 's' }"
-          >
-            <div class="club-header">
-              <div class="club-badge" :class="getCategoryColor(club.category)">
-                <span class="badge-icon">{{ getCategoryEmoji(club.category) }}</span>
-                <span class="badge-text">{{ club.category }}</span>
-              </div>
-              <div class="club-favorite">
-                <span>⭐</span>
-              </div>
-            </div>
-
-            <div class="club-body">
-              <h3 class="club-name">{{ club.name }}</h3>
-              <p class="club-desc">
-                {{ club.description.substring(0, 80) }}{{ club.description.length > 80 ? '...' : '' }}
-              </p>
-
-              <div class="club-tags">
-                <span
-                    v-for="(tag, idx) in club.tags.slice(0, 3)"
-                    :key="idx"
-                    class="club-tag"
-                  >
-                  {{ tag }}
-                </span>
-                <span v-if="club.tags.length > 3" class="club-tag-more">
-                  +{{ club.tags.length - 3 }}
-                </span>
-              </div>
-
-              <div class="decision-facts">
-                <span>{{ club.activityTime || '时间待定' }}</span>
-                <span>{{ club.weeklyHours }} 小时/周</span>
-                <span>{{ club.campus || '校区待定' }}</span>
-                <span>{{ club.fee ? club.fee + ' 元' : '免费' }}</span>
-              </div>
-
+              <h3 :id="`club-name-${club.id}`">{{ club.name }}</h3>
+              <p class="club-description">{{ club.description }}</p>
+              <div class="club-tags" aria-label="社团标签"><span v-for="tag in club.tags.slice(0, 3)" :key="tag">{{ tag }}</span><span v-if="club.tags.length > 3">+{{ club.tags.length - 3 }}</span></div>
+              <dl class="decision-facts">
+                <DecisionFact label="活动时间" :value="club.activityTime || '时间待定'" />
+                <DecisionFact label="所在校区" :value="club.campus || '校区待定'" />
+                <DecisionFact label="费用" :value="feeLabel(club)" />
+                <DecisionFact label="技能门槛" :value="skillLabel(club)" />
+              </dl>
               <div class="club-footer">
-                <div class="club-stats">
-                  <span class="stat-item">
-                    <span class="stat-icon">👥</span>
-                    {{ club.memberCount }} 成员
-                  </span>
-                </div>
-                <div class="club-action">
-                  <button class="view-btn">
-                    <span>查看详情</span>
-                    <span class="action-arrow">→</span>
-                  </button>
-                </div>
+                <span>{{ club.memberCount }} 位成员</span>
+                <button class="button-primary" @click="showClubDetails(club, $event)">查看详情</button>
               </div>
-            </div>
+            </article>
           </div>
+        </section>
+      </div>
+    </div>
+    <div v-if="selectedClub" class="modal-overlay" @click.self="closeDetails">
+      <section ref="dialog" role="dialog" aria-modal="true" aria-labelledby="club-dialog-title" class="club-dialog" @keydown="handleDialogKeydown">
+        <div class="dialog-header">
+          <CategoryMark :category="selectedClub.category" />
+          <button ref="closeButton" class="button-secondary close-button" aria-label="关闭社团详情" @click="closeDetails">关闭</button>
+        </div>
+        <div class="dialog-body">
+          <StatusPill :tone="selectedClub.isRecruiting ? 'success' : 'neutral'" :label="selectedClub.isRecruiting ? '招募中' : '暂停招新'" />
+          <h2 id="club-dialog-title">{{ selectedClub.name }}</h2>
+          <p class="dialog-description">{{ selectedClub.description }}</p>
+          <div class="club-tags"><span v-for="tag in selectedClub.tags" :key="tag">{{ tag }}</span></div>
+          <dl class="decision-facts dialog-facts">
+            <DecisionFact label="活动时间" :value="selectedClub.activityTime || '时间待定'" />
+            <DecisionFact label="每周投入" :value="`${selectedClub.weeklyHours} 小时`" />
+            <DecisionFact label="所在校区" :value="selectedClub.campus || '校区待定'" />
+            <DecisionFact label="费用" :value="feeLabel(selectedClub)" />
+            <DecisionFact label="技能门槛" :value="skillLabel(selectedClub)" />
+            <DecisionFact label="成员数量" :value="`${selectedClub.memberCount} 人`" />
+            <DecisionFact class="full-width" label="入社要求" :value="selectedClub.requirements || '请联系社团确认'" />
+            <DecisionFact class="full-width" label="联系方式" :value="selectedClub.contact || '暂未提供联系方式'" />
+          </dl>
+        </div>
+        <div class="dialog-actions">
+          <p v-if="intentMessage" role="status" :class="{ 'intent-error': intentError }">{{ intentMessage }}</p>
+          <p v-else class="intent-hint">{{ selectedClub.isRecruiting ? '记录意向后，可通过以上联系方式了解招新安排。' : '当前暂停招新，可联系社团了解下一次招募时间。' }}</p>
+          <button class="intent-button button-primary" :disabled="!selectedClub.isRecruiting" :aria-disabled="recording || undefined" :aria-busy="recording" @click="applyToClub(selectedClub)">{{ !selectedClub.isRecruiting ? '暂停招新' : recording ? '正在记录…' : '记录加入意向' }}</button>
         </div>
       </section>
-    </div>
-
-    <!-- Club Details Modal -->
-    <div v-if="showDetails && selectedClub" class="modal-overlay" @click="showDetails = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <div class="modal-club-badge" :class="getCategoryColor(selectedClub.category)">
-            <span class="badge-icon">{{ getCategoryEmoji(selectedClub.category) }}</span>
-            <span class="badge-text">{{ selectedClub.category }}</span>
-          </div>
-          <div class="modal-close" @click="showDetails = false">✕</div>
-        </div>
-
-        <div class="modal-body">
-          <h2 class="modal-club-title">{{ selectedClub.name }}</h2>
-
-          <div class="modal-tags">
-            <span v-for="tag in selectedClub.tags" :key="tag" class="modal-tag">
-              {{ tag }}
-            </span>
-          </div>
-
-          <p class="modal-description">{{ selectedClub.description }}</p>
-
-          <div class="modal-info-card">
-            <div class="info-item">
-              <span class="info-icon">👥</span>
-              <div class="info-content">
-                <span class="info-label">成员数量</span>
-                <span class="info-value">{{ selectedClub.memberCount }} 人</span>
-              </div>
-            </div>
-            <div class="info-item">
-              <span class="info-icon">🗓</span><div class="info-content"><span class="info-label">活动安排</span><span class="info-value">{{ selectedClub.activityTime }} · 每周 {{ selectedClub.weeklyHours }} 小时</span></div>
-            </div>
-            <div class="info-item">
-              <span class="info-icon">📍</span><div class="info-content"><span class="info-label">校区与费用</span><span class="info-value">{{ selectedClub.campus }} · {{ selectedClub.fee ? selectedClub.fee + ' 元' : '免费' }}</span></div>
-            </div>
-            <div class="info-item">
-              <span class="info-icon">📋</span>
-              <div class="info-content">
-                <span class="info-label">入社要求</span>
-                <span class="info-value">{{ selectedClub.requirements }}</span>
-              </div>
-            </div>
-            <div class="info-item">
-              <span class="info-icon">📞</span>
-            <div class="info-content">
-                <span class="info-label">联系方式</span>
-                <span class="info-value">{{ selectedClub.contact }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="modal-btn modal-btn-secondary" @click="showDetails = false">
-            关闭
-          </button>
-          <button class="modal-btn modal-btn-primary" :disabled="!selectedClub.isRecruiting" @click="applyToClub(selectedClub)">
-            <span>{{ selectedClub.isRecruiting ? '记录加入意向' : '暂停招新' }}</span>
-            <span class="btn-icon">→</span>
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.decision-facts { display:flex; flex-wrap:wrap; gap:7px; margin:14px 0; }
-.decision-facts span { padding:5px 8px; border-radius:6px; background:#f0f4f6; color:#526a78; font-size:12px; }
-.clubs-page {
-  min-height: 100vh;
-  animation: fadeIn 0.6s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Floating Elements */
-.floating-elements {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.float {
-  position: absolute;
-  font-size: var(--size);
-  opacity: 0.08;
-  animation: float 20s ease-in-out infinite;
-  animation-delay: var(--delay);
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg) scale(1);
-  }
-  50% {
-    transform: translateY(-30px) rotate(10deg) scale(1.05);
-  }
-}
-
-/* Page Header */
-.page-header {
-  position: relative;
-  padding: 80px 20px 60px;
-  overflow: hidden;
-}
-
-.header-pattern {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(46, 134, 171, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 100%, rgba(255, 107, 107, 0.15) 0%, transparent 50%);
-  animation: patternMove 30s ease-in-out infinite;
-}
-
-@keyframes patternMove {
-  0%, 100% {
-    transform: scale(1) translate(0);
-  }
-  50% {
-    transform: scale(1.05) translate(5px, -5px);
-  }
-}
-
-.header-content {
-  position: relative;
-  max-width: 900px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  z-index: 1;
-}
-
-.header-icon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  box-shadow: 0 8px 24px rgba(46, 134, 171, 0.25);
-  animation: bounce 3s ease-in-out infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.icon-emoji {
-  animation: pulse pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.header-text {
-  flex: 1;
-}
-
-.page-title {
-  font-family: var(--font-display);
-  font-size: 48px;
-  font-weight: 800;
-  color: var(--color-dark);
-  margin-bottom: 8px;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  font-size: 18px;
-  color: var(--color-gray-600);
-}
-
-/* Content Wrapper */
-.content-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Filters Section */
-.filters-section {
-  margin-bottom: 40px;
-}
-
-.filter-card {
-  background: white;
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  box-shadow: var(--shadow-md);
-}
-
-.filter-row {
-  margin-bottom: 24px;
-}
-
-.filter-row:last-child {
-  margin-bottom: 0;
-}
-
-.filter-item {
-  flex: 1;
-}
-
-.filter-item > label {
-  display: block;
-  font-weight: 600;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-  font-size: 15px;
-}
-
-.filter-search {
-  flex: 2;
-}
-
-.filter-search .search-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-input {
-  flex: 1;
-  padding: 14px 40px 14px 16px;
-  font-size: 15px;
-  border: 2px solid var(--color-gray-200);
-  border-radius: var(--radius-full);
-  outline: none;
-  transition: all 0.3s ease;
-  background: var(--color-gray-50);
-}
-
-.search-input:focus {
-  border-color: var(--color-secondary);
-  background: white;
-  box-shadow: 0 0 0 4px rgba(46, 134, 171, 0.2);
-}
-
-.search-clear {
-  width: 40px;
-  height: 40px;
-  background: var(--color-gray-200);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  color: var(--color-gray-600);
-  font-size: 16px;
-  transition: all 0.3s ease;
-  margin-left: 8px;
-}
-
-.search-clear:hover {
-  background: var(--color-gray-300);
-  color: var(--color-dark);
-}
-
-/* Category Chips */
-.category-chips {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.category-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: var(--color-gray-100);
-  border: 2px solid var(--color-gray-200);
-  border-radius: var(--radius-full);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-gray-600);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.category-chip:hover {
-  background: var(--color-gray-200);
-  transform: translateY(-2px);
-}
-
-.category-chip.active {
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
-  color: white;
-  border-color: var(--color-secondary);
-  box-shadow: 0 4px 12px rgba(46, 134, 171, 0.2);
-}
-
-.chip-icon {
-  font-size: 18px;
-}
-
-/* Tag Chips */
-.tag-chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tag-chip {
-  padding: 8px 16px;
-  background: var(--color-gray-100);
-  border: 1px solid var(--color-gray-200);
-  border-radius: 9999px;
-  font-size: 13px;
-  color: var(--color-gray-600);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tag-chip:hover {
-  background: var(--color-gray-200);
-  transform: translateY(-2px);
-}
-
-.tag-chip.active {
-  background: rgba(255, 107, 107, 0.15);
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-/* Filter Actions */
-.filter-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 20px;
-  border-top: 1px solid var(--color-gray-100);
-}
-
-.clear-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: transparent;
-  color: var(--color-gray-600);
-  border: 1px solid var(--color-gray-300);
-  border-radius: 9999px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.clear-button:hover {
-  background: var(--color-gray-100);
-  color: var(--color-dark);
-  border-color: var(--color-dark);
-}
-
-/* Clubs Section */
-.clubs-section {
-  min-height: 400px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 80px 40px;
-}
-
-.empty-icon {
-  font-size: 80px;
-  margin-bottom: 24px;
-  animation: bounce bounce 2s ease-in-out infinite;
-}
-
-.empty-text {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-}
-
-.empty-hint {
-  color: var(--color-gray-600);
-}
-
-.clubs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-}
-
-/* Club Card */
-.club-card {
-  background: white;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.4s ease;
-  opacity: 0;
-  animation: slideUp 0.6s ease-out both;
-  animation-delay: var(--delay);
-  cursor: pointer;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.club-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-lg);
-}
-
-.club-card.hovered {
-  border: 2px solid var(--color-primary);
-}
-
-/* Club Header */
-.club-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background: linear-gradient(135deg, rgba(46, 134, 171, 0.05) 0%, rgba(255, 107, 107, 0.05) 100%);
-}
-
-.club-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.category-tech {
-  background: rgba(46, 134, 171, 0.15);
-  color: var(--color-secondary);
-}
-
-.category-sports {
-  background: rgba(46, 134, 171, 0.15);
-  color: var(--color-secondary);
-}
-
-.category-arts {
-  background: rgba(255, 107, 107, 0.15);
-  color: var(--color-primary);
-}
-
-.category-academic {
-  background: rgba(46, 134, 171, 0.15);
-  color: var(--color-secondary);
-}
-
-.category-cultural {
-  background: rgba(255, 217, 61, 0.15);
-  color: var(--color-accent);
-}
-
-.category-default {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
-}
-
-.badge-icon {
-  font-size: 16px;
-}
-
-.badge-text {
-  font-size: 12px;
-}
-
-.club-favorite {
-  width: 40px;
-  height: 40px;
-  background: var(--color-gray-100);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: all 0.3s ease;
-}
-
-.club-card:hover .club-favorite {
-  background: var(--color-accent);
-  color: white;
-}
-
-/* Club Body */
-.club-body {
-  padding: 20px;
-}
-
-.club-name {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-  line-height: 1.3;
-}
-
-.club-desc {
-  color: var(--color-gray-600);
-  line-height: 1.6;
-  margin-bottom: 16px;
-  font-size: 15px;
-}
-
-/* Club Tags */
-.club-tags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-.club-tag {
-  padding: 6px 12px;
-  background: var(--color-gray-100);
-  border-radius: 9999px;
-  font-size: 12px;
-  color: var(--color-gray-600);
-  font-weight: 500;
-}
-
-.club-tag-more {
-  padding: 6px 12px;
-  background: var(--color-gray-200);
-  border-radius: 9999px;
-  font-size: 12px;
-  color: var(--color-gray-500);
-}
-
-/* Club Footer */
-.club-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-gray-100);
-}
-
-.club-stats {
-  flex: 1;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  color: var(--color-gray-600);
-  font-weight: 500;
-}
-
-.club-action {
-  flex: 0;
-}
-
-.view-btn {
-  width: 100%;
-  padding: 12px 24px;
-  background: transparent;
-  border: 2px solid var(--color-secondary);
-  border-radius: 9999px;
-  color: var(--color-secondary);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.view-btn:hover {
-  background: var(--color-secondary);
-  color: white;
-}
-
-.action-arrow {
-  font-size: 14px;
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-
-.view-btn:hover .action-arrow {
-  opacity: 1;
-  transform: translateX(4px);
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.modal-content {
-  background: white;
-  border-radius: var(--radius-xl);
-  width: 90%;
-  max-width: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
-  animation: modalSlideIn modalSlideIn 0.4s ease-out;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Modal Header */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 32px;
-  border-bottom: 1px solid var(--color-gray-100);
-}
-
-.modal-club-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 9999px;
-  font-size: 14px;
-  font-weight: 600;
-;
-}
-
-.modal-close {
-  width: 40px;
-  height: 40px;
-  background: var(--color-gray-100);
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: var(--color-gray-600);
-  transition: all 0.3s ease;
-}
-
-.modal-close:hover {
-  background: var(--color-gray-200);
-  color: var(--color-dark);
-}
-
-/* Modal Body */
-.modal-body {
-  padding: 32px;
-}
-
-.modal-club-title {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--color-dark);
-  margin-bottom: 20px;
-}
-
-.modal-tags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.modal-tag {
-  padding: 8px 16px;
-  background: rgba(255, 107, 107, 0.15);
-  color: var(--color-primary);
-  border-radius: 9999px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.modal-description {
-  color: var(--color-gray-600);
-  line-height: 1.8;
-  margin-bottom: 24px;
-  font-size: 15px;
-}
-
-.modal-info-card {
-  background: var(--color-gray-50);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  display: grid;
-  gap: 20px;
-}
-
-.info-item {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.info-icon {
-  font-size: 24px;
-  margin-top: 4px;
-}
-
-.info-content {
-  flex: 1;
-}
-
-.info-label {
-  display: block;
-  font-weight: 600;
-  color: var(--color-gray-600);
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-
-.info-value {
-  color: var(--color-dark);
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-/* Modal Actions */
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  padding: 32px;
-  border-top: 1px solid var(--color-gray-100);
-}
-
-.modal-btn {
-  flex: 1;
-  padding: 16px 32px;
-  border-radius: 9999px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.modal-btn:hover {
-  transform: translateY(-2px);
-}
-
-.modal-btn-secondary {
-  background: transparent;
-  color: var(--color-gray-600);
-  border: 2px solid var(--color-gray-300);
-}
-
-.modal-btn-secondary:hover {
-  background: var(--color-gray-100);
-  color: var(--color-dark);
-  border-color: var(--color-dark);
-}
-
-.modal-btn-primary {
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
-  color: white;
-  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
-}
-
-.modal-btn-primary:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(255, 107, 107, 0.4);
-}
-
-.btn-icon {
-  font-size: 14px;
-  margin-left: 4px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .page-title {
-    font-size: 32px;
-  }
-
-  .filter-card {
-    padding: 24px;
-  }
-
-  .filter-row {
-    flex-direction: column;
-  }
-
-  .filter-item {
-    width: 100%;
-  }
-
-  .filter-search {
-    width: 100%;
-  }
-
-  .clubs-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-content {
-    width: 95%;
-  }
+.clubs-page { padding-bottom: 64px; }
+.discovery-layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); align-items: start; gap: 28px; }
+.filter-sidebar, .results-section { min-width: 0; }
+.filter-panel { padding: 22px; border: 1px solid var(--border-moss); border-radius: var(--radius-card); background: var(--surface); }
+.filter-panel h2, .results-header h2 { margin: 0; font-size: 18px; font-weight: 750; }
+.filter-toggle { display: none; }
+.search-field { display: grid; gap: 8px; margin-top: 22px; }
+label, legend { color: var(--text-ink); font-size: 14px; font-weight: 650; }
+input { width: 100%; min-width: 0; padding: 10px 12px; color: var(--text-ink); background: var(--surface); border: 1px solid var(--border-moss); border-radius: var(--radius-control); font-size: 14px; }
+input::placeholder { color: var(--text-muted); }
+fieldset { min-width: 0; margin: 24px 0 0; padding: 0; border: 0; }
+legend { margin-bottom: 10px; padding: 0; }
+.category-options { display: grid; gap: 6px; }
+.filter-option { min-height: 44px; padding: 7px 10px; border: 1px solid transparent; border-radius: var(--radius-control); color: var(--text-ink); background: var(--surface); text-align: left; cursor: pointer; font-size: 14px; overflow-wrap: anywhere; }
+.filter-option:hover { background: var(--field-paper); }
+.filter-option[aria-pressed="true"] { border-color: var(--campus-green); background: var(--field-paper); box-shadow: inset 3px 0 var(--campus-green); font-weight: 700; }
+.filter-hint { margin: 0 0 10px; color: var(--text-muted); font-size: 14px; }
+.tag-options { display: flex; flex-wrap: wrap; gap: 7px; }
+.tag-option { max-width: 100%; border-color: var(--border-moss); }
+.clear-button { width: 100%; margin-top: 24px; }
+.results-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 18px; }
+.filter-summary { margin: 0; color: var(--text-muted); font-size: 14px; overflow-wrap: anywhere; }
+.loading-state { padding: 40px 24px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border-moss); border-radius: var(--radius-card); }
+.clubs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.club-card { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid var(--border-moss); border-radius: var(--radius-card); background: var(--surface); }
+.club-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.club-card h3 { margin: 22px 0 10px; font-size: 23px; line-height: 1.4; font-weight: 750; overflow-wrap: anywhere; }
+.club-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 3.4em; margin: 0 0 16px; color: var(--text-muted); font-size: 15px; line-height: 1.7; overflow-wrap: anywhere; }
+.club-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.club-tags span { max-width: 100%; padding: 3px 8px; background: var(--field-paper); border-radius: var(--radius-control); color: var(--text-muted); font-size: 14px; overflow-wrap: anywhere; }
+.decision-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; margin: 22px 0; padding-top: 20px; border-top: 1px solid var(--border-moss); }
+.club-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: auto; padding-top: 18px; border-top: 1px solid var(--border-moss); }
+.club-footer > span { color: var(--text-muted); font-size: 14px; }
+.club-footer button { flex-shrink: 0; }
+.modal-overlay { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px; background: rgb(20 37 34 / 56%); }
+.club-dialog { width: min(100%, 660px); max-height: calc(100dvh - 48px); overflow-y: auto; overscroll-behavior: contain; background: var(--surface); border: 1px solid var(--border-moss); border-radius: var(--radius-panel); box-shadow: var(--shadow-lg); }
+.dialog-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 28px; border-bottom: 1px solid var(--border-moss); }
+.dialog-body { padding: 28px; }
+.dialog-body h2 { margin: 18px 0 12px; font-size: clamp(26px, 3vw, 32px); line-height: 1.35; font-weight: 800; overflow-wrap: anywhere; }
+.dialog-description { margin: 0 0 18px; color: var(--text-muted); font-size: 15px; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; }
+.dialog-facts { margin-bottom: 0; }
+.full-width { grid-column: 1 / -1; white-space: pre-line; }
+.dialog-actions { display: flex; flex-direction: column; align-items: stretch; gap: 14px; padding: 22px 28px; border-top: 1px solid var(--border-moss); }
+.dialog-actions p { margin: 0; color: var(--campus-green); font-size: 14px; }
+.dialog-actions .intent-hint { color: var(--text-muted); }
+.dialog-actions .intent-error { color: var(--danger); }
+.clubs-page :is(button, input):focus-visible { outline: 3px solid var(--campus-green); outline-offset: 3px; }
+@media (max-width: 1100px) {
+  .discovery-layout { grid-template-columns: 218px minmax(0, 1fr); gap: 20px; }
+  .club-card { padding: 20px; }
+  .clubs-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 820px) {
+  .clubs-page { padding-bottom: 40px; }
+  .discovery-layout { grid-template-columns: 1fr; gap: 24px; }
+  .filter-toggle { display: flex; justify-content: space-between; width: 100%; }
+  .filter-panel { display: none; margin-top: 10px; padding: 20px; }
+  .filter-panel.expanded { display: block; }
+  .filter-panel h2 { display: none; }
+  .search-field { margin-top: 0; }
+  .category-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .results-header { align-items: flex-start; flex-direction: column; }
+  .modal-overlay { padding: 18px; }
+  .club-dialog { max-height: calc(100dvh - 36px); }
+  .dialog-header { padding: 16px 20px; }
+  .dialog-body { padding: 20px; }
+  .dialog-actions { padding: 20px; }
 }
 </style>
