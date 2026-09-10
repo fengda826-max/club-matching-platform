@@ -107,6 +107,8 @@ describe('Chat decision workspace', () => {
     expect(signal?.aborted).toBe(true)
     expect(wrapper.get('article.assistant').text()).toContain('已经生成的内容')
     expect(wrapper.text()).toContain('已停止生成')
+    expect(wrapper.text()).toContain('已连接')
+    expect(wrapper.text()).not.toContain('重新连接')
     expect(button(wrapper, '停止生成').attributes('disabled')).toBeDefined()
     await button(wrapper, '清空对话').trigger('click')
     expect(useUserStore().chatHistory).toHaveLength(0)
@@ -146,6 +148,34 @@ describe('Chat decision workspace', () => {
     expect(wrapper.get('textarea').element.value).toBe('保留我的草稿')
     expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeUndefined()
     expect(wrapper.text()).toContain('restored-model')
+  })
+
+  it('marks a failed stream transport offline and reconnects without losing partial content or the draft', async () => {
+    const wrapper = await render()
+    expect(wrapper.text()).toContain('已连接')
+    await button(wrapper, '有哪些技术类社团？').trigger('click')
+    handlers.chunk?.({ text: '编程社欢迎初学者。' })
+    fail(new TypeError('Failed to fetch'))
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('已连接')
+    expect(wrapper.text()).toContain('服务未连接')
+    expect(wrapper.get('article.assistant').text()).toContain('编程社欢迎初学者。')
+    expect(wrapper.get('article.assistant [role="alert"]').text()).toContain('Failed to fetch')
+    await wrapper.get('textarea').setValue('保留断线后的草稿')
+    expect(wrapper.get('textarea').attributes('disabled')).toBeUndefined()
+    expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined()
+    expect(button(wrapper, '重新提问').attributes('disabled')).toBeDefined()
+    await wrapper.get('form').trigger('submit')
+    expect(useUserStore().chatHistory).toHaveLength(2)
+
+    await button(wrapper, '重新连接').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('已连接')
+    expect(wrapper.get('textarea').element.value).toBe('保留断线后的草稿')
+    expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeUndefined()
+    expect(button(wrapper, '重新提问').attributes('disabled')).toBeUndefined()
+    expect(useUserStore().chatHistory[1]?.content).toBe('编程社欢迎初学者。')
   })
 
   it('aborts an active stream on unmount without losing the partial history', async () => {

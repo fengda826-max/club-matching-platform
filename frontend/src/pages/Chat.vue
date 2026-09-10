@@ -98,6 +98,8 @@ const sendMessage = async () => {
     if (controller.signal.aborted) {
       userStore.updateAssistantMetadata(assistantIndex, { error: '已停止生成' })
     } else {
+      // Fetch and response-body transport failures reject with TypeError.
+      if (error instanceof TypeError) connection.value = 'offline'
       userStore.updateAssistantMetadata(assistantIndex, { error: error instanceof Error ? error.message : '回答失败，请稍后重试' })
       if (!userStore.chatHistory[assistantIndex]?.content) userStore.appendAssistantChunk(assistantIndex, '抱歉，暂时无法生成回答。')
     }
