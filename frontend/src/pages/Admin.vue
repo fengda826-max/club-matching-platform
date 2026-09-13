@@ -75,6 +75,11 @@ watch(formBusy, async (busy) => {
   if (busy) activeDialog.value?.focus()
   else activeDialog.value?.querySelector<HTMLInputElement>('#club-name')?.focus()
 })
+watch(loggingIn, (busy) => {
+  if (busy && showLogin.value) {
+    activeDialog.value?.querySelector<HTMLInputElement>('#admin-password')?.focus()
+  }
+}, { flush: 'post' })
 function restoreScroll() {
   if (previousOverflow !== null) { document.body.style.overflow = previousOverflow; previousOverflow = null }
 }

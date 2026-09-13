@@ -80,6 +80,36 @@ describe('Operations dashboard', () => {
     expect(document.activeElement).toBe(trigger.element)
   })
 
+  it('moves focus off the disabled login submit and contains Tab in both directions while login is pending', async () => {
+    let reject!: (error: Error) => void
+    vi.mocked(apiClient.auth.login).mockImplementation(() => new Promise((_resolve, fail) => { reject = fail }))
+    const wrapper = await render()
+    await button(wrapper, '管理登录').trigger('click')
+    await flushPromises()
+    const dialog = wrapper.get('[role="dialog"]')
+    const input = dialog.get<HTMLInputElement>('input[type="password"]')
+    const submit = dialog.get<HTMLButtonElement>('button[type="submit"]')
+    await input.setValue('pending-login-password')
+    submit.element.focus()
+    expect(document.activeElement).toBe(submit.element)
+    await dialog.trigger('submit')
+    await flushPromises()
+    expect(submit.element.disabled).toBe(true)
+    expect(document.activeElement).toBe(input.element)
+    expect(dialog.element.contains(document.activeElement)).toBe(true)
+    for (const shiftKey of [false, true]) {
+      const event = new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, cancelable: true })
+      document.activeElement!.dispatchEvent(event)
+      expect(event.defaultPrevented).toBe(true)
+      expect(document.activeElement).toBe(input.element)
+    }
+    reject(new Error('请重试'))
+    await flushPromises()
+    expect(input.element.value).toBe('pending-login-password')
+    expect(submit.element.disabled).toBe(false)
+    expect(dialog.get('[role="alert"]').text()).toBe('请重试')
+  })
+
   it('logs in and logs out through the existing session API', async () => {
     const wrapper = await render()
     await button(wrapper, '管理登录').trigger('click')
