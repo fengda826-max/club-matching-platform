@@ -104,7 +104,7 @@ export function formatTagsDisplay(tags: string[], maxShow: number = 3): {
 /**
  * 获取匹配分数等级
  */
-export function getMatchScoreLevel(score: { valid: boolean; message: string }): {
+export function getMatchScoreLevel(score: number): {
   level: string
   label: string
 } {

@@ -18,6 +18,7 @@ async function render(query: Record<string, string | (string | null)[]> = {}) {
 
 describe('Matching workspace', () => {
   beforeEach(() => {
+    sessionStorage.clear()
     vi.spyOn(apiClient.ai, 'health').mockResolvedValue({ healthy: false, provider: null })
     vi.spyOn(apiClient.matching, 'recommend').mockResolvedValue({ mode: 'rules-only', warning: '模型不可用，已使用规则结果', matches: [] })
   })
@@ -51,5 +52,40 @@ describe('Matching workspace', () => {
     expect(wrapper.get('[data-status="extraction"]').text()).toContain('请直接填写条件')
     expect(wrapper.text()).not.toContain('internal provider failure')
     expect(wrapper.get('textarea').element.value).toBe('我喜欢摄影')
+  })
+
+  it.each([
+    ['input[name="availableTimes"]', '周末'],
+    ['input[name="campus"]', '东校区'],
+    ['input[name="maxWeeklyHours"]', '4'],
+    ['input[name="maxFee"]', '0'],
+    ['select', 'intermediate'],
+  ])('moves to condition review when only %s changes', async (selector, value) => {
+    const { wrapper } = await render()
+    await wrapper.get(selector).setValue(value)
+    expect(wrapper.get('[aria-current="step"]').text()).toContain('确认条件')
+  })
+
+  it('keeps a successful intent completed when the page is remounted after refresh', async () => {
+    vi.mocked(apiClient.matching.recommend).mockResolvedValue({ mode: 'rules-only', matches: [{
+      clubId: 1, score: 75, dimensions: { interest: 40, goal: 0, schedule: 20, skill: 15 },
+      evidence: ['兴趣：编程'], caveats: ['每周需要 3 小时'], reason: '适合编程初学者',
+      club: { id: 1, name: '编程俱乐部', category: '技术', description: '', requirements: '', memberCount: 128,
+        contact: 'club@example.test', tags: '编程', activityTime: '周六', weeklyHours: 3, campus: '南校区',
+        fee: 0, skillRequirement: 'beginner', isRecruiting: true, createdAt: '', updatedAt: '' },
+    }] })
+    vi.spyOn(apiClient.intents, 'record').mockResolvedValue({ created: true })
+    const first = await render()
+    await first.wrapper.get('form').trigger('submit')
+    await flushPromises()
+    await first.wrapper.get('.match-card button').trigger('click')
+    await flushPromises()
+    expect(first.wrapper.get('.match-card button').text()).toBe('已登记意向')
+    first.wrapper.unmount()
+    const refreshed = await render()
+    await refreshed.wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(refreshed.wrapper.get('.match-card button').text()).toBe('已登记意向')
+    expect(refreshed.wrapper.get('.match-card button').attributes('disabled')).toBeDefined()
   })
 })

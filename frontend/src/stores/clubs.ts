@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { apiClient, type Club, type Statistics } from '@/api/client'
-import type { ClubCategory } from '@/types'
+import { apiClient, type Club as ApiClub, type Statistics } from '@/api/client'
+import type { Club, ClubCategory } from '@/types'
 
 // Static categories (don't change)
 const categories: ClubCategory[] = [
@@ -11,8 +11,8 @@ const categories: ClubCategory[] = [
   { id: 'cultural', name: '文化', icon: '🌍' },
 ]
 
-// Convert backend Club type (number id) to frontend Club type (string id)
-export function convertClub(club: apiClient.Club): Club {
+// Normalize the API's comma-separated tags for frontend filtering.
+export function convertClub(club: ApiClub): Club {
   return {
     id: club.id,
     name: club.name,
@@ -32,7 +32,7 @@ export function convertClub(club: apiClient.Club): Club {
 }
 
 // Convert frontend Club to backend format
-function convertClubToBackend(club: Omit<Club, 'id'>): Omit<apiClient.Club, 'id' | 'createdAt' | 'updatedAt'> {
+function convertClubToBackend(club: Omit<Club, 'id'>): Omit<ApiClub, 'id' | 'createdAt' | 'updatedAt'> {
   return {
     name: club.name,
     category: club.category,

@@ -49,7 +49,7 @@ export function getAllClubs(): Club[] {
  * @param id - Club ID
  * @returns Club or undefined if not found
  */
-export function getClubById(id: string): Club | undefined {
+export function getClubById(id: number): Club | undefined {
   return clubsStore.clubs.find((club) => club.id === id)
 }
 
@@ -70,7 +70,7 @@ export function addClub(club: Club): Club {
  * @returns Updated club or undefined if not found
  */
 export function updateClub(
-  id: string,
+  id: number,
   updates: Partial<Club>,
 ): Club | undefined {
   const index = clubsStore.clubs.findIndex((club) => club.id === id)
@@ -89,7 +89,7 @@ export function updateClub(
  * @param id - Club ID to delete
  * @returns Deleted club or undefined if not found
  */
-export function deleteClub(id: string): Club | undefined {
+export function deleteClub(id: number): Club | undefined {
   const index = clubsStore.clubs.findIndex((club) => club.id === id)
   if (index > -1) {
     const deleted = clubsStore.clubs[index]

@@ -17,7 +17,8 @@ const loadError = ref(false)
 const selectedClub = ref<Club | null>(null)
 const dialog = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
-const recording = ref(false)
+const pendingIntents = ref(new Set<number>())
+const recording = computed(() => selectedClub.value ? pendingIntents.value.has(selectedClub.value.id) : false)
 const intentMessage = ref('')
 const intentError = ref(false)
 let returnFocus: HTMLElement | null = null
@@ -97,8 +98,8 @@ function handleDialogKeydown(event: KeyboardEvent) {
 }
 
 async function applyToClub(club: Club) {
-  if (!club.isRecruiting || recording.value) return
-  recording.value = true
+  if (!club.isRecruiting || pendingIntents.value.has(club.id)) return
+  pendingIntents.value.add(club.id)
   intentMessage.value = ''
   intentError.value = false
   try {
@@ -110,7 +111,7 @@ async function applyToClub(club: Club) {
       intentMessage.value = error instanceof Error ? error.message : '记录失败，请稍后重试'
     }
   } finally {
-    recording.value = false
+    pendingIntents.value.delete(club.id)
   }
 }
 

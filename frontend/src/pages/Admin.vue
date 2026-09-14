@@ -30,8 +30,7 @@ const fieldErrors = reactive({ name: '', description: '' })
 const activeDialog = ref<HTMLFormElement | null>(null)
 const dialogOpen = computed(() => showLogin.value || showForm.value)
 const formBusy = computed(() => saving.value || generating.value !== null)
-// The store converts API tags into arrays; its legacy annotation still uses API Club.
-const clubs = computed(() => store.clubs as unknown as Club[])
+const clubs = computed(() => store.clubs)
 let returnFocus: HTMLElement | null = null
 let previousOverflow: string | null = null
 
@@ -149,8 +148,8 @@ async function save() {
   saving.value=true
   form.tags = tagsText.value.split(/[、,，]/).map(v=>v.trim()).filter(Boolean)
   try {
-    if (editingId.value) await store.updateClub(editingId.value, { ...form } as unknown as Parameters<typeof store.updateClub>[1])
-    else await store.addClub({ ...form } as unknown as Parameters<typeof store.addClub>[0])
+    if (editingId.value) await store.updateClub(editingId.value, { ...form })
+    else await store.addClub({ ...form })
     showForm.value=false
     await refresh()
     ElMessage.success(editingId.value ? '社团已更新' : '社团已创建')

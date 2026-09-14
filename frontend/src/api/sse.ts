@@ -12,8 +12,11 @@ export type ChatStreamEvents = {
 export type ChatStreamHandlers = { [K in keyof ChatStreamEvents]?: (data: ChatStreamEvents[K]) => void }
 
 export class ChatStreamError extends Error {
-  constructor(public readonly code: string, message: string) {
+  readonly code: string
+
+  constructor(code: string, message: string) {
     super(message)
+    this.code = code
     this.name = 'ChatStreamError'
   }
 }

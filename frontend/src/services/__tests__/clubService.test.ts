@@ -19,14 +19,20 @@ import {
 } from '../clubService'
 
 const mockCategories: ClubCategory[] = [
-  { id: 'technology', name: '技术', emoji: '💻' },
-  { id: 'sports', name: '体育', emoji: '⚽' },
-  { id: 'arts', name: '艺术', emoji: '🎨' },
+  { id: 'technology', name: '技术', icon: '💻' },
+  { id: 'sports', name: '体育', icon: '⚽' },
+  { id: 'arts', name: '艺术', icon: '🎨' },
 ]
+
+const clubDefaults = {
+  activityTime: '周末', weeklyHours: 2, campus: '东校区', fee: 0,
+  skillRequirement: 'beginner' as const, isRecruiting: true,
+}
 
 const mockClubs: Club[] = [
   {
-    id: 'club-1',
+    ...clubDefaults,
+    id: 1,
     name: '编程协会',
     category: 'technology',
     description: '这是一个致力于编程技术交流的社团',
@@ -36,7 +42,8 @@ const mockClubs: Club[] = [
     tags: ['编程', '技术', '开发'],
   },
   {
-    id: 'club-2',
+    ...clubDefaults,
+    id: 2,
     name: '篮球社',
     category: 'sports',
     description: '喜欢篮球的同学一起来交流',
@@ -46,7 +53,8 @@ const mockClubs: Club[] = [
     tags: ['篮球', '运动', '体育'],
   },
   {
-    id: 'club-3',
+    ...clubDefaults,
+    id: 3,
     name: '书法社',
     category: 'arts',
     description: '传承书法艺术，一起练字交流',
@@ -73,13 +81,13 @@ describe('clubService', () => {
 
   describe('getClubById', () => {
     it('returns correct club by id', () => {
-      const club = getClubById('club-1')
+      const club = getClubById(1)
       expect(club).not.toBeUndefined()
       expect(club?.name).toBe('编程协会')
     })
 
     it('returns undefined for non-existent club', () => {
-      const club = getClubById('non-existent')
+      const club = getClubById(999)
       expect(club).toBeUndefined()
     })
   })
@@ -87,7 +95,8 @@ describe('clubService', () => {
   describe('addClub', () => {
     it('adds a new club correctly', () => {
       const newClub: Club = {
-        id: 'club-4',
+        ...clubDefaults,
+        id: 4,
         name: '绘画社',
         category: 'arts',
         description: '绘画爱好者交流',
@@ -100,7 +109,7 @@ describe('clubService', () => {
       const result = addClub(newClub)
       expect(result).toEqual(newClub)
       expect(getAllClubs()).toHaveLength(4)
-      expect(getClubById('club-4')).toEqual(newClub)
+      expect(getClubById(4)).toEqual(newClub)
     })
   })
 
@@ -111,7 +120,7 @@ describe('clubService', () => {
         memberCount: 160,
       }
 
-      const result = updateClub('club-1', updates)
+      const result = updateClub(1, updates)
       expect(result).not.toBeUndefined()
       expect(result?.name).toBe('编程与开发协会')
       expect(result?.memberCount).toBe(160)
@@ -121,22 +130,22 @@ describe('clubService', () => {
     })
 
     it('returns undefined for non-existent club', () => {
-      const result = updateClub('non-existent', { name: 'New Name' })
+      const result = updateClub(999, { name: 'New Name' })
       expect(result).toBeUndefined()
     })
   })
 
   describe('deleteClub', () => {
     it('deletes existing club correctly', () => {
-      const deleted = deleteClub('club-2')
+      const deleted = deleteClub(2)
       expect(deleted).not.toBeUndefined()
-      expect(deleted?.id).toBe('club-2')
+      expect(deleted?.id).toBe(2)
       expect(getAllClubs()).toHaveLength(2)
-      expect(getClubById('club-2')).toBeUndefined()
+      expect(getClubById(2)).toBeUndefined()
     })
 
     it('returns undefined when deleting non-existent club', () => {
-      const result = deleteClub('non-existent')
+      const result = deleteClub(999)
       expect(result).toBeUndefined()
       expect(getAllClubs()).toHaveLength(3)
     })
@@ -151,7 +160,7 @@ describe('clubService', () => {
     it('filters by category', () => {
       const result = getFilteredClubs({ category: 'technology' })
       expect(result).toHaveLength(1)
-      expect(result[0].id).toBe('club-1')
+      expect(result[0].id).toBe(1)
     })
 
     it('filters by search query in name', () => {
@@ -163,19 +172,19 @@ describe('clubService', () => {
     it('filters by search query in description', () => {
       const result = getFilteredClubs({ searchQuery: '编程技术' })
       expect(result).toHaveLength(1)
-      expect(result[0].id).toBe('club-1')
+      expect(result[0].id).toBe(1)
     })
 
     it('filters by search query in tags', () => {
       const result = getFilteredClubs({ searchQuery: '艺术' })
       expect(result).toHaveLength(1)
-      expect(result[0].id).toBe('club-3')
+      expect(result[0].id).toBe(3)
     })
 
     it('filters by multiple tags (any match)', () => {
       const result = getFilteredClubs({ tags: ['艺术'] })
       expect(result).toHaveLength(1)
-      expect(result[0].id).toBe('club-3')
+      expect(result[0].id).toBe(3)
     })
 
     it('combines multiple filters correctly', () => {
@@ -184,7 +193,7 @@ describe('clubService', () => {
         searchQuery: '书法',
       })
       expect(result).toHaveLength(1)
-      expect(result[0].id).toBe('club-3')
+      expect(result[0].id).toBe(3)
     })
   })
 
@@ -216,7 +225,7 @@ describe('clubService', () => {
       const featured = getFeaturedClubs()
       expect(featured).toHaveLength(2)
       // Should have club-1 (150) and club-3 (120)
-      expect(featured.map(c => c.id)).toEqual(expect.arrayContaining(['club-1', 'club-3']))
+      expect(featured.map(c => c.id)).toEqual(expect.arrayContaining([1, 3]))
     })
   })
 
@@ -253,7 +262,7 @@ describe('clubService', () => {
     it('returns clubs for specific category name', () => {
       const clubs = getClubsByCategoryName('technology')
       expect(clubs).toHaveLength(1)
-      expect(clubs[0].id).toBe('club-1')
+      expect(clubs[0].id).toBe(1)
     })
   })
 

@@ -42,7 +42,7 @@ export const useUserStore = defineStore('user', {
       this.preferences.interests = interests
     },
 
-    updateSkillLevel(skillLevel: string) {
+    updateSkillLevel(skillLevel: UserPreference['skillLevel']) {
       this.preferences.skillLevel = skillLevel
     },
 

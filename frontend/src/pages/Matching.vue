@@ -22,11 +22,24 @@ const extractionFailed = ref(false)
 const matchError = ref('')
 const intentStatus = ref('')
 const intentFailed = ref(false)
-const recorded = ref(new Set<number>())
+const recordedIntentsKey = 'campusmatch.recorded-matching-intents'
+function readRecordedIntents(): Set<number> {
+  try {
+    const value: unknown = JSON.parse(sessionStorage.getItem(recordedIntentsKey) || '[]')
+    return new Set(Array.isArray(value) ? value.filter((id): id is number => Number.isInteger(id) && id > 0) : [])
+  } catch { return new Set() }
+}
+const recorded = ref(readRecordedIntents())
 const recording = ref(new Set<number>())
 const submittedPreference = ref('')
 const resultStale = computed(() => Boolean(results.value) && submittedPreference.value !== JSON.stringify(preference.value))
-const stage = computed(() => results.value && !resultStale.value ? 3 : preference.value.interests.length || preference.value.goals.length || extractionStatus.value ? 2 : 1)
+const stage = computed(() => {
+  if (results.value && !resultStale.value) return 3
+  const conditions = preference.value
+  return resultStale.value || extractionStatus.value || conditions.interests.length || conditions.goals.length
+    || conditions.availableTimes.length || conditions.campus || conditions.maxWeeklyHours !== undefined
+    || conditions.maxFee !== undefined || conditions.skillLevel !== 'beginner' ? 2 : 1
+})
 const fallbackMessage = computed(() => {
   if (!results.value || results.value.mode !== 'rules-only') return ''
   // Only display known public explanations; provider errors must never leak into the UI.
@@ -78,6 +91,9 @@ async function recordIntent(clubId: number, score: number) {
   try {
     await apiClient.intents.record({ clubId, source: 'matching', matchScore: score })
     recorded.value = new Set(recorded.value).add(clubId)
+    // Keep the successful action visible across refreshes in this browser tab.
+    // Storage restrictions must not turn a successful server write into an error.
+    try { sessionStorage.setItem(recordedIntentsKey, JSON.stringify([...recorded.value])) } catch { /* Current-page state remains available. */ }
     intentStatus.value = '已登记意向，可通过社团联系方式进一步了解。'
   } catch {
     intentFailed.value = true

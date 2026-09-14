@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { addTag, removeTag } from '../tags'
 
 describe('tags utilities', () => {
