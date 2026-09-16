@@ -26,12 +26,12 @@
 
 ## 4:00–5:00｜云架构与取舍
 
-展示 README 架构：腾讯云轻量服务器上由 Nginx 作为唯一入口，Express 模块化单体连接 SQLite 持久卷，后端网关调用 DeepSeek V4。说明：
+展示 README 架构：腾讯云轻量服务器上由 Nginx 作为唯一入口，Express 模块化单体连接 SQLite 持久卷，后端网关调用阿里云百炼（qwen-flash 对话 + text-embedding-v3 向量）。说明：
 
 - API Key 不进浏览器，写接口有服务端鉴权。
 - 模型输出经 Zod 校验，瞬时故障有界重试。
-- 无 Key、超时、非法 JSON 或虚构 ID 时，推荐降级为规则结果。
-- 当前业务量不需要 Kubernetes、Redis、微服务和向量库；README 写明了演进触发条件。
+- 无 Key、超时、非法 JSON 或虚构 ID 时，推荐降级为规则结果；问答的向量检索失败时降级为关键词检索。
+- 语义检索用轻量的 sqlite-vec（与业务库同一个 SQLite 文件），不需要独立向量库；当前业务量也不需要 Kubernetes、Redis 和微服务，README 写明了演进触发条件。
 
 ## 故障恢复
 

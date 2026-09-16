@@ -30,3 +30,8 @@ dist-ssr
 *.sw?
 .worktrees/
 .superpowers/
+.claude/settings.local.json
+
+# Browser test tool cache/screenshots (not project source)
+.playwright-mcp/
+*-snapshot.md
