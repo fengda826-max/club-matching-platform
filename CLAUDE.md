@@ -10,12 +10,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A production-grade PoC for club recruitment: students get explainable AI-assisted recommendations (rules decide the score, AI only writes the reason), club operators see anonymized conversion metrics, and admins get an authenticated management panel.
 
-**Architecture**: Monorepo with separate frontend and backend npm workspaces
+**Architecture**: Monorepo — Vue 3 frontend (npm) + Python FastAPI backend (independent)
 - **Frontend**: Vue 3 + TypeScript + Vite + Pinia + Vue Router + Vitest
-- **Backend**: Node.js + Express + TypeScript + Prisma ORM + SQLite (compiled with `tsc`, run as `node dist/server.js`; dev uses `ts-node-dev`)
-- **AI provider**: hand-written gateway (`AIProvider` interface) — `AnthropicProvider` and `OpenAICompatProvider`. Default: **阿里云百炼 (DashScope)** OpenAI-compatible endpoint — `qwen-flash` chat + `text-embedding-v3` embeddings (1024 dims)
-- **混合检索 (hybrid retrieval)**: 向量语义召回 (LangChain.js `OpenAIEmbeddings` + **sqlite-vec** `vec0` 虚拟表，和业务库共用同一个 SQLite 文件) → 规则层确定性打分（兴趣 40/目标 25/时间 20/技能 15，权重固定不可由 AI 改动）→ AI 只写推荐理由。`RAG_ENABLED` 开关控制；检索/模型失败时自动降级（问答退关键词检索，匹配退纯规则结果）
-- **Deployment**: single server — Docker Compose (`app` container + `web` Nginx container), backend serves the built frontend static files, SQLite + sqlite-vec share one file in a named volume. See `README.md` for the full deployment guide.
+- **Backend**: Python + FastAPI + SQLAlchemy 2.0 ORM + SQLite (run with `uvicorn app.main:app`). Pydantic v2 schemas with `alias_generator=to_camel` keep the JSON API camelCase so the frontend needs zero changes.
+- **AI provider**: hand-written gateway (`AIProvider` interface, `app/ai/providers.py`) over `httpx` — `AnthropicProvider` and `OpenAICompatProvider`. Default: **阿里云百炼 (DashScope)** OpenAI-compatible endpoint — `qwen-flash` chat + `text-embedding-v3` embeddings (1024 dims)
+- **混合检索 (hybrid retrieval)**: 向量语义召回 (LangChain `OpenAIEmbeddings` + **sqlite-vec** `vec0` 虚拟表，和业务库共用同一个 SQLite 文件) → 规则层确定性打分（兴趣 40/目标 25/时间 20/技能 15，权重固定不可由 AI 改动）→ AI 只写推荐理由。`RAG_ENABLED` 开关控制；检索/模型失败时自动降级（问答退关键词检索，匹配退纯规则结果）
+- **Deployment**: single server — Docker Compose (`app` = FastAPI/uvicorn container + `web` = Nginx container serving the built frontend and reverse-proxying `/api`), SQLite + sqlite-vec share one file in a named volume. See `README.md` for the full deployment guide.
 
 ---
 
@@ -64,31 +64,33 @@ Primary colors used throughout the application:
 
 ```
 club-matching-platform/
-├── docker-compose.yml                 # app (Express) + web (Nginx) containers
+├── docker-compose.yml                 # app (FastAPI/uvicorn) + web (Nginx) containers
 ├── deploy/
 │   ├── Dockerfile.web                 # Nginx image serving frontend/dist + reverse proxy
 │   └── nginx.conf
 ├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma              # Club / RecruitmentIntent / AIRequestLog (SQLite)
-│   │   └── seed.ts                    # Seeds demo clubs
+│   ├── Dockerfile                     # python:3.12-slim image running uvicorn
+│   ├── requirements.txt
 │   ├── scripts/
-│   │   └── index-vectors.ts           # Rebuild the sqlite-vec knowledge index
-│   ├── src/
-│   │   ├── ai/                        # embeddings.ts (LangChain), vectorStore.ts (sqlite-vec)
-│   │   ├── providers/                 # AIProvider interface, Anthropic/OpenAI-compat implementations
+│   │   └── index_vectors.py           # Rebuild the sqlite-vec knowledge index
+│   ├── app/
+│   │   ├── main.py                    # FastAPI app: CORS, routers, error handlers, startup lifespan
+│   │   ├── config.py                  # pydantic-settings (env)
+│   │   ├── db.py                      # SQLAlchemy engine + models (Club/RecruitmentIntent/AIRequestLog)
+│   │   ├── schemas.py                 # Pydantic v2 models (camelCase alias) — the API contract
+│   │   ├── errors.py                  # AppError + envelope + exception handlers
+│   │   ├── security.py                # HMAC-signed admin cookie + in-memory rate limiter
+│   │   ├── deps.py                    # lazy service singletons (provider/retrieval wiring)
+│   │   ├── serializers.py             # ORM → camelCase JSON
+│   │   ├── ai/                        # embeddings.py (LangChain), vector_store.py (sqlite-vec), providers.py, errors.py
 │   │   ├── services/
-│   │   │   ├── AIService.ts               # groundedChat (RAG Q&A), chatComplete, description/tags
-│   │   │   ├── RecommendationService.ts   # vector recall → RuleMatchingService → AI reasons
-│   │   │   ├── RuleMatchingService.ts     # deterministic hard filters + 4-dimension scoring
-│   │   │   ├── VectorRetrievalService.ts  # embed query → sqlite-vec KNN
-│   │   │   ├── ClubService.ts, AnalyticsService.ts, IntentService.ts, AIRequestLogger.ts
-│   │   ├── routes/                    # ai.ts, matching.ts, clubs.ts, auth.ts, analytics.ts, intents.ts
-│   │   ├── middleware/                # adminAuth.ts (HMAC-signed cookie), rateLimits.ts, errorHandler.ts
-│   │   ├── data/                      # demoClubs.ts, clubKnowledge.ts (RAG corpus), ensureDemoData.ts, ensureVectorIndex.ts
-│   │   ├── schemas/                   # Zod schemas (chat, club, matching)
-│   │   ├── app.ts, server.ts
-│   └── package.json
+│   │   │   ├── ai_service.py               # grounded_chat (RAG Q&A), chat_complete, description/tags
+│   │   │   ├── recommendation.py           # vector recall → RuleMatchingService → AI reasons
+│   │   │   ├── rule_matching.py            # deterministic hard filters + 4-dimension scoring
+│   │   │   ├── vector_retrieval.py         # embed query → sqlite-vec KNN
+│   │   │   ├── club.py, analytics.py, intent.py, ai_logger.py
+│   │   ├── routes/                    # ai.py, matching.py, clubs.py, auth.py, analytics.py, intents.py
+│   │   └── data/                      # demo_clubs.py, club_knowledge.py (RAG corpus), ensure_demo_data.py, ensure_vector_index.py
 ├── frontend/
 │   ├── src/
 │   │   ├── api/client.ts              # Typed backend API client — single source of truth
@@ -109,29 +111,25 @@ club-matching-platform/
 
 ## Development
 
-### Install Dependencies
-
-```bash
-cd club-matching-platform
-npm install               # npm workspaces auto-installs frontend/ and backend/
-```
-
-### First-time setup (database + RAG index)
+### Backend (Python)
 
 ```bash
 cd backend
-npx prisma migrate deploy
-npm run seed              # inserts demo clubs
-npm run index:vectors     # embeds club knowledge into sqlite-vec (needs AI_API_KEY)
+python -m venv .venv
+source .venv/Scripts/activate     # Windows Git Bash; Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env              # set AI_API_KEY, ADMIN_PASSWORD, SESSION_SECRET
+python -m uvicorn app.main:app --reload --port 3001
 ```
 
-`index:vectors` can be skipped — the server auto-builds the index on startup if it's empty and a key is configured.
+On startup the app's `lifespan` auto-creates tables, seeds demo clubs (`SEED_DEMO_DATA`), and builds the sqlite-vec index if it's empty and a key is configured. To force-rebuild the index manually: `python -m scripts.index_vectors`.
 
-### Local Development
+### Frontend (Vue)
 
 ```bash
-cd club-matching-platform
-npm run dev                # concurrently runs backend (ts-node-dev) + frontend (vite)
+cd frontend
+npm install
+npm run dev
 ```
 
 - Frontend: http://localhost:5175/
@@ -142,10 +140,10 @@ npm run dev                # concurrently runs backend (ts-node-dev) + frontend 
 ### Build for Production
 
 ```bash
-npm run build              # builds frontend/dist and backend/dist (tsc)
+cd frontend && npm run build      # builds frontend/dist
 ```
 
-The backend is compiled and started with `node dist/server.js` in production (not `tsx`/`ts-node`).
+The backend runs directly from source under uvicorn (no compile step).
 
 ---
 
@@ -160,7 +158,7 @@ docker compose --env-file backend/.env up -d --build
 curl --fail http://127.0.0.1/api/health
 ```
 
-- `web` (Nginx) is the only container exposing a port (default 80); `app` (Express) is internal-only.
+- `web` (Nginx) is the only container exposing a port (default 80); `app` (FastAPI/uvicorn) is internal-only.
 - Data (SQLite + sqlite-vec) lives in the named volume `campusmatch_data` — restarting containers doesn't lose data.
 - Full step-by-step guide, security-group notes, and the 5-minute demo script are in `README.md` and `docs/demo-script.md`.
 
@@ -174,7 +172,7 @@ DATABASE_URL="file:./dev.db"          # SQLite; sqlite-vec table shares this fil
 
 PORT=3001
 CORS_ORIGIN=http://localhost:517*,https://localhost:517*
-NODE_ENV=development
+APP_ENV=development                    # set to production on the server
 
 # AI — 阿里云百炼 (DashScope, OpenAI-compatible)
 AI_PROVIDER=openai-compat             # anthropic | openai-compat
@@ -247,11 +245,11 @@ The question is embedded and matched against `club_doc_vectors` (sqlite-vec) for
 
 ## AI Integration Architecture
 
-- `src/providers/` — hand-written `AIProvider` interface (`initialize/generateStructured/chat/chatComplete/checkHealth/getProviderInfo`), implemented by `AnthropicProvider` and `OpenAICompatProvider`. No embedding method here — embeddings are a separate concern.
-- `src/ai/embeddings.ts` — `createEmbeddings()` returns a LangChain `OpenAIEmbeddings` pointed at the same DashScope base URL/key.
-- `src/ai/vectorStore.ts` — `SqliteVecStore`: opens a second `better-sqlite3` connection to the same SQLite file as Prisma (Prisma can't load native extensions), loads `sqlite-vec`, manages the `club_doc_vectors` virtual table. **Binding gotcha**: integer aux columns must be bound as `BigInt`, embeddings as JSON strings — plain JS numbers/Float32Array cause a "type mismatch" error.
-- `src/services/VectorRetrievalService.ts` — embeds the query, runs KNN, dedupes by clubId (closest distance wins).
-- Structured output: Zod schemas validated at runtime (no TS-cast-as-validation).
+- `app/ai/providers.py` — hand-written `AIProvider` interface (`initialize/generate_structured/chat/chat_complete/check_health/get_provider_info`) over `httpx`, implemented by `AnthropicProvider` and `OpenAICompatProvider`. No embedding method here — embeddings are a separate concern.
+- `app/ai/embeddings.py` — `create_embeddings()` returns a LangChain `OpenAIEmbeddings` pointed at the same DashScope base URL/key. `check_embedding_ctx_length=False` so it sends raw strings (DashScope rejects LangChain's default tiktoken token-id arrays).
+- `app/ai/vector_store.py` — `SqliteVecStore`: opens a second `sqlite3` connection to the same SQLite file as SQLAlchemy (the ORM can't load SQLite extensions), loads `sqlite-vec`, manages the `club_doc_vectors` virtual table. Embeddings are bound as JSON strings; integer aux columns bind as plain Python `int` (the BigInt gotcha was a better-sqlite3/JS quirk, not present here).
+- `app/services/vector_retrieval.py` — embeds the query, runs KNN, dedupes by clubId (closest distance wins).
+- Structured output: Pydantic v2 models validated at runtime.
 - Reliability: per-call timeout, caller-side `AbortSignal` cancellation, bounded retry on 429/502/503/504, deterministic rule/keyword fallback on any AI or vector failure.
 - Observability (`AIRequestLog`): useCase, provider, model, status, duration, tokens, error code, fallback flag only — never raw prompts, answers, or student identity.
 
@@ -259,47 +257,17 @@ The question is embedded and matched against `club_doc_vectors` (sqlite-vec) for
 
 ---
 
-## Database (Prisma ORM, SQLite)
+## Database (SQLAlchemy 2.0 ORM, SQLite)
 
-**Schema**: [backend/prisma/schema.prisma](backend/prisma/schema.prisma)
+**Models**: [backend/app/db.py](backend/app/db.py) — three tables, created on startup via `init_db()` (no migration tool):
 
-```prisma
-model Club {
-  id               Int      @id @default(autoincrement())
-  name             String   @unique
-  category         String
-  description      String
-  requirements     String
-  memberCount      Int
-  contact          String
-  tags             String   // comma-separated
-  activityTime     String   @default("")
-  weeklyHours      Int      @default(0)
-  campus           String   @default("")
-  fee              Int      @default(0)
-  skillRequirement String   @default("beginner")
-  isRecruiting     Boolean  @default(true)
-  intents          RecruitmentIntent[]
-}
+- `Club` (`id`, `name` unique, `category`, `description`, `requirements`, `memberCount`, `contact`, `tags` comma-separated, `activityTime`, `weeklyHours`, `campus`, `fee`, `skillRequirement`, `isRecruiting`, `createdAt`, `updatedAt`)
+- `RecruitmentIntent` — anonymized, unique per (`clubId`, `sessionId`): `clubId`, `source`, `matchScore?`, `sessionId`
+- `AIRequestLog` — AI run metrics only, no prompts/answers: `useCase`, `provider`, `model`, `status`, `durationMs`, `inputTokens?`, `outputTokens?`, `fallbackUsed`, `errorCode?`
 
-model RecruitmentIntent {   // anonymized, deduped per (clubId, sessionId)
-  clubId Int
-  source String
-  matchScore Int?
-  sessionId String
-}
+Table names are PascalCase and columns camelCase (Python attributes are snake_case, mapped via `mapped_column("camelName", ...)`), preserving the original on-disk schema and the frontend JSON contract.
 
-model AIRequestLog {        // AI run metrics only — no prompts/answers
-  useCase String
-  provider String
-  model String
-  status String
-  durationMs Int
-  fallbackUsed Boolean
-}
-```
-
-The sqlite-vec `club_doc_vectors` virtual table lives in the **same SQLite file** but is managed by a separate `better-sqlite3` connection (`src/ai/vectorStore.ts`), not by Prisma.
+The sqlite-vec `club_doc_vectors` virtual table lives in the **same SQLite file** but is managed by a separate `sqlite3` connection (`app/ai/vector_store.py`), not by the ORM.
 
 ---
 
@@ -332,10 +300,11 @@ The sqlite-vec `club_doc_vectors` virtual table lives in the **same SQLite file*
 ## Testing
 
 ```bash
-npm test                    # frontend (Vitest) + backend (Vitest + Supertest)
-npm run build                # tsc (backend) + vite build (frontend)
-npm run evaluate --workspace backend   # deterministic CI evaluation, see docs/evaluation/latest.md
+cd frontend && npm test      # frontend (Vitest) — includes the SSE contract test
+cd frontend && npm run build # vite build
 ```
+
+Backend is validated by running it and exercising the endpoints (health, clubs, matching/recommend, ai/chat/stream, auth, intents, analytics). The camelCase JSON contract and the `event: metadata/chunk/usage/done/error` SSE format are preserved from the original so the frontend is unchanged.
 
 ---
 
@@ -351,14 +320,12 @@ See `README.md` → "已知限制" for the current, authoritative list (single a
 
 ## Troubleshooting
 
-### Database / migration issues
-```bash
-cd backend && npx prisma migrate dev
-```
+### Database issues
+Tables are created automatically on startup by `init_db()`. To reset locally, stop the server and delete the SQLite file referenced by `DATABASE_URL` (e.g. `backend/dev.db`), then restart.
 
 ### Vector search returns nothing / stale
 ```bash
-cd backend && npm run index:vectors
+cd backend && python -m scripts.index_vectors
 ```
 
 ### Frontend can't connect to backend

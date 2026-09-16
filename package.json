@@ -3,17 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "frontend",
-    "backend"
+    "frontend"
   ],
   "scripts": {
-    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
-    "build": "npm run build --workspace frontend && npm run build --workspace backend",
-    "test": "npm test --workspace frontend && npm test --workspace backend",
-    "evaluate": "npm run evaluate --workspace backend",
-    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev"
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "test:frontend": "cd frontend && npm test",
+    "dev:backend": "cd backend && python -m uvicorn app.main:app --reload --port 3001",
+    "build": "npm run build:frontend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -1,31 +1,25 @@
-FROM node:22-bookworm-slim AS base
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends openssl \
-    && rm -rf /var/lib/apt/lists/*
+FROM python:3.12-slim AS base
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
 
-FROM base AS build
-WORKDIR /workspace
-# better-sqlite3 是原生模块：slim 镜像缺少编译工具链，需临时装上
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 make g++ \
-    && rm -rf /var/lib/apt/lists/*
-COPY package.json package-lock.json ./
-COPY backend/package.json backend/package.json
-COPY frontend/package.json frontend/package.json
-RUN npm ci
-COPY backend backend
-RUN npm exec --workspace backend prisma generate && npm run build --workspace backend
-
-FROM base AS runtime
-ENV NODE_ENV=production
-WORKDIR /workspace
-COPY --from=build /workspace/node_modules ./node_modules
-COPY --from=build /workspace/backend/package.json ./backend/package.json
-COPY --from=build /workspace/backend/dist ./backend/dist
-COPY --from=build /workspace/backend/prisma ./backend/prisma
-RUN mkdir -p /data && chown -R node:node /workspace /data
-USER node
 WORKDIR /workspace/backend
+
+# 依赖层：先装依赖，利用缓存
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 应用代码
+COPY backend/app ./app
+COPY backend/scripts ./scripts
+
+RUN mkdir -p /data
+ENV DATABASE_URL=file:/data/app.db
+
 EXPOSE 3001
-HEALTHCHECK --interval=15s --timeout=3s --retries=5 CMD ["node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
-CMD ["sh", "-c", "../node_modules/.bin/prisma migrate deploy && node dist/server.js"]
+
+# 建表 / 演示数据 / 向量索引在应用启动的 lifespan 里自动完成
+HEALTHCHECK --interval=15s --timeout=3s --retries=5 \
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:3001/api/health').status==200 else 1)" || exit 1
+
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3001"]

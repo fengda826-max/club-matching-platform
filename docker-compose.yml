@@ -5,7 +5,7 @@ services:
       dockerfile: backend/Dockerfile
     restart: unless-stopped
     environment:
-      NODE_ENV: production
+      APP_ENV: production
       PORT: 3001
       DATABASE_URL: file:/data/app.db
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
@@ -28,7 +28,7 @@ services:
     expose:
       - "3001"
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:3001/api/health').status==200 else 1)"]
       interval: 15s
       timeout: 3s
       retries: 5
