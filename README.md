@@ -26,7 +26,7 @@ Vue 3 + TypeScript + Vite + Pinia（前端）｜Node.js + Express + Prisma + SQL
 
 ## 🚀 本地运行
 
-要求 Node.js 20+。
+要求 Node.js 22+（better-sqlite3 / LangChain.js 依赖要求）。
 
 ```bash
 npm install
