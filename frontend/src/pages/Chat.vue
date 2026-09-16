@@ -15,18 +15,20 @@ const inputMessage = ref('')
 const isLoading = ref(false)
 const chatContainer = ref<HTMLElement | null>(null)
 const activeController = ref<AbortController | null>(null)
-const connection = ref<'checking' | 'online' | 'unavailable' | 'offline'>('checking')
+const connection = ref<'checking' | 'online' | 'offline'>('checking')
+const aiAvailable = ref(false)
 const configuredModel = ref('')
 const messages = computed(() => userStore.chatHistory)
 const hasValidBackend = computed(() => connection.value === 'online')
 const connectionStatus = computed(() => ({
   checking: { tone: 'neutral' as const, label: '正在检查连接' },
-  online: { tone: 'success' as const, label: '已连接' },
-  unavailable: { tone: 'warning' as const, label: 'AI 暂不可用' },
+  online: aiAvailable.value
+    ? { tone: 'success' as const, label: '已连接' }
+    : { tone: 'warning' as const, label: '规则问答可用' },
   offline: { tone: 'danger' as const, label: '服务未连接' },
 })[connection.value])
 const latestAnswer = computed(() => [...messages.value].reverse().find(message => message.role === 'assistant'))
-const modelLabel = computed(() => latestAnswer.value?.model || configuredModel.value || '模型待确认')
+const modelLabel = computed(() => latestAnswer.value?.model || (connection.value === 'online' && !aiAvailable.value ? '基于社团资料 · 规则问答' : configuredModel.value || '模型待确认'))
 const generationStatus = computed(() => {
   if (isLoading.value) return '正在生成'
   if (latestAnswer.value?.error === '已停止生成') return '已停止生成'
@@ -38,7 +40,8 @@ async function checkBackendHealth() {
   connection.value = 'checking'
   try {
     const health = await apiClient.ai.health()
-    connection.value = health.healthy ? 'online' : 'unavailable'
+    connection.value = 'online'
+    aiAvailable.value = health.healthy
     configuredModel.value = typeof health.provider?.model === 'string' ? health.provider.model : ''
   } catch {
     connection.value = 'offline'
@@ -146,8 +149,8 @@ const retryMessage = (index: number) => {
       </header>
 
       <div ref="chatContainer" class="chat-messages" role="log" aria-label="社团问答记录" aria-live="polite" aria-relevant="additions text" tabindex="0">
-        <EmptyState v-if="connection === 'offline' || connection === 'unavailable'" class="connection-empty"
-          :title="connection === 'offline' ? '暂时无法连接服务' : 'AI 暂不可用'"
+        <EmptyState v-if="connection === 'offline'" class="connection-empty"
+          title="暂时无法连接服务"
           description="可以继续查看对话、整理问题。连接恢复后再发送。">
           <template #action><button type="button" class="button-secondary" @click="checkBackendHealth">重新连接</button></template>
         </EmptyState>

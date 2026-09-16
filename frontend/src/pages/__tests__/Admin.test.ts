@@ -149,7 +149,8 @@ describe('Operations dashboard', () => {
 
   it('shows inline field errors and applies generated description and suggested tags before create', async () => {
     vi.spyOn(apiClient.ai, 'generateDescription').mockResolvedValue({ description: 'AI 草稿，可编辑' })
-    vi.spyOn(apiClient.ai, 'suggestTags').mockResolvedValue(['编程', '合作'])
+    const suggestedTags: Awaited<ReturnType<typeof apiClient.ai.suggestTags>> = ['编程', '合作']
+    vi.spyOn(apiClient.ai, 'suggestTags').mockResolvedValue(suggestedTags)
     vi.spyOn(apiClient.clubs, 'create').mockResolvedValue({ ...club, id: 8, name: '新社团', description: 'AI 草稿，可编辑', tags: '编程,合作' })
     const wrapper = await render()
     await button(wrapper, '新增社团').trigger('click')
@@ -167,6 +168,22 @@ describe('Operations dashboard', () => {
     await flushPromises()
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
     expect(apiClient.clubs.create).toHaveBeenCalledWith(expect.objectContaining({ name: '新社团', tags: '编程,合作', description: 'AI 草稿，可编辑' }))
+  })
+
+  it('preserves tag drafts and enables retry after a tag-generation error', async () => {
+    vi.spyOn(apiClient.ai, 'suggestTags').mockRejectedValueOnce(new ApiClientError(503, 'AI_UNAVAILABLE', '标签生成暂不可用')).mockResolvedValue(['编程', '合作'])
+    const wrapper = await render()
+    await button(wrapper, '编辑').trigger('click')
+    await wrapper.get('#club-tags').setValue('手动标签')
+    await button(wrapper, 'AI 推荐标签').trigger('click')
+    await flushPromises()
+    expect(wrapper.get<HTMLInputElement>('#club-tags').element.value).toBe('手动标签')
+    expect(wrapper.get('[role="dialog"] [role="alert"]').text()).toBe('标签生成暂不可用')
+    expect(button(wrapper, 'AI 推荐标签').attributes('disabled')).toBeUndefined()
+    await button(wrapper, 'AI 推荐标签').trigger('click')
+    await flushPromises()
+    expect(wrapper.get<HTMLInputElement>('#club-tags').element.value).toBe('编程、合作')
+    expect(wrapper.find('[role="dialog"] [role="alert"]').exists()).toBe(false)
   })
 
   it('prompts for expired authentication above the preserved edit and returns focus after login', async () => {

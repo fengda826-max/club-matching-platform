@@ -8,6 +8,7 @@ import { AIRequestLogger } from '../services/AIRequestLogger'
 import { ClubService } from '../services/ClubService'
 import { RecommendationService } from '../services/RecommendationService'
 import { RuleMatchingService } from '../services/RuleMatchingService'
+import { createVectorRetrieval } from '../services/VectorRetrievalService'
 
 const extractionRequestSchema = z.object({ text: z.string().trim().min(2).max(1000) }).strict()
 
@@ -34,6 +35,8 @@ async function defaultService(): Promise<MatchingService> {
         clubService: new ClubService(prisma),
         ruleService: new RuleMatchingService(),
         logger: new AIRequestLogger(prisma),
+        retrieval: createVectorRetrieval(),
+        ragTopK: env.RAG_TOP_K,
       })
     })()
   }

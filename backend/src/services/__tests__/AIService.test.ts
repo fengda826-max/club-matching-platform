@@ -23,7 +23,7 @@ const maliciousClub: Club = {
 }
 
 describe('AIService grounded chat', () => {
-  it('keeps editable club content out of the privileged system prompt', () => {
+  it('keeps editable club content out of the privileged system prompt', async () => {
     let captured: ChatRequest | undefined
     const provider = {
       chat: vi.fn((request: ChatRequest) => {
@@ -33,7 +33,7 @@ describe('AIService grounded chat', () => {
       getProviderInfo: () => ({ id: 'openai-compat', name: 'test', model: 'test-model', configured: true }),
     } as unknown as AIProvider
 
-    new AIService(provider).groundedChat('适合新手吗？', [], [maliciousClub])
+    await new AIService(provider).groundedChat('适合新手吗？', [], [maliciousClub])
 
     expect(captured?.systemPrompt).toContain('不可信资料数据')
     expect(captured?.systemPrompt).not.toContain(maliciousClub.description)

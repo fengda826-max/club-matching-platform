@@ -32,6 +32,20 @@ afterEach(() => {
 })
 
 describe('apiClient club mutations', () => {
+  it('unwraps suggested tags from the backend response for form consumers', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(jsonResponse({ success: true, data: { tags: ['编程', '合作'] } }))
+    vi.stubGlobal('fetch', fetchSpy)
+
+    await expect(apiClient.ai.suggestTags('编程社', '技术', '一起学习')).resolves.toEqual(['编程', '合作'])
+    expect(fetchSpy.mock.calls[0][0]).toMatch(/\/api\/ai\/suggest-tags$/)
+    expect(fetchSpy.mock.calls[0][1]).toMatchObject({ method: 'POST', body: JSON.stringify({ name: '编程社', category: '技术', description: '一起学习' }) })
+  })
+
+  it('preserves tag-generation API errors instead of returning tags', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ success: false, error: 'AI_UNAVAILABLE', message: '标签生成暂不可用' }, 503)))
+    await expect(apiClient.ai.suggestTags('编程社', '技术', '一起学习')).rejects.toMatchObject({ status: 503, code: 'AI_UNAVAILABLE', message: '标签生成暂不可用' })
+  })
+
   it('uses PUT when updating a club', async () => {
     const fetchSpy = vi.fn().mockResolvedValue(jsonResponse({ success: true, data: club }))
     vi.stubGlobal('fetch', fetchSpy)

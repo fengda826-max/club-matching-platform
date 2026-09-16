@@ -16,6 +16,10 @@ const rawEnvSchema = z.object({
   AI_TIMEOUT: z.coerce.number().int().positive().default(30000),
   AI_MAX_RETRIES: z.coerce.number().int().nonnegative().max(5).default(2),
   AI_TEMPERATURE: z.coerce.number().min(0).max(2).optional(),
+  AI_EMBEDDING_MODEL: z.string().default('text-embedding-v3'),
+  AI_EMBEDDING_DIM: z.coerce.number().int().positive().default(1024),
+  RAG_ENABLED: z.enum(['true', 'false']).default('true'),
+  RAG_TOP_K: z.coerce.number().int().positive().max(50).default(5),
   ADMIN_PASSWORD: z.string().default(''),
   SESSION_SECRET: z.string().default(''),
   COOKIE_SECURE: z.enum(['true', 'false']).default('false'),
@@ -34,4 +38,5 @@ export const env = {
   CORS_ORIGINS: parsed.CORS_ORIGIN.split(',').map(value => value.trim()).filter(Boolean),
   COOKIE_SECURE: parsed.COOKIE_SECURE === 'true',
   SEED_DEMO_DATA: parsed.SEED_DEMO_DATA === 'true',
+  RAG_ENABLED: parsed.RAG_ENABLED === 'true',
 }

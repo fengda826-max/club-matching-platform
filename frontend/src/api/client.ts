@@ -68,17 +68,6 @@ export type Club = {
   updatedAt: string
 }
 
-export type MatchResultItem = {
-  clubId: number
-  clubName: string
-  matchScore: number
-  matchReason: string
-}
-
-export type MatchResult = {
-  matches: MatchResultItem[]
-}
-
 export type UserPreference = {
   interests: string[]
   skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert'
@@ -159,10 +148,12 @@ export const apiClient = {
   // AI endpoints
   ai: {
     health: () => get<{healthy: boolean, provider: any}>('/ai/health'),
-    matching: (preferences: UserPreference) => post<MatchResult>('/ai/matching', {preferences}),
     chat: (message: string, history: ChatMessage[]) => post<{response: string}>('/ai/chat', {message, history}),
     generateDescription: (name: string, category: string) => post<{description: string}>('/ai/generate-description', {name, category}),
-    suggestTags: (name: string, category: string, description: string) => post<string[]>('/ai/suggest-tags', {name, category, description}),
+    suggestTags: async (name: string, category: string, description: string): Promise<string[]> => {
+      const result = await post<{ tags: string[] }>('/ai/suggest-tags', {name, category, description})
+      return result.tags
+    },
   },
 }
 

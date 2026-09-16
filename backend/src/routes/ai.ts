@@ -8,6 +8,7 @@ import { chatRequestSchema } from '../schemas/chat'
 import { AIRequestLogger } from '../services/AIRequestLogger'
 import { AIService } from '../services/AIService'
 import { ClubService } from '../services/ClubService'
+import { createVectorRetrieval } from '../services/VectorRetrievalService'
 import { writeSse } from '../utils/sse'
 import { createRequireAdmin } from '../middleware/adminAuth'
 
@@ -27,7 +28,8 @@ async function defaultDependencies(): Promise<Dependencies> {
       temperature: env.AI_TEMPERATURE,
     })
     if (env.AI_API_KEY) await provider.initialize()
-    return { ai: new AIService(provider), clubs: new ClubService(prisma), logger: new AIRequestLogger(prisma) }
+    const retrieval = createVectorRetrieval()
+    return { ai: new AIService(provider, retrieval, env.RAG_TOP_K), clubs: new ClubService(prisma), logger: new AIRequestLogger(prisma) }
   })()
   return dependenciesPromise
 }
@@ -70,7 +72,7 @@ export function createAiRouter(getDependencies: DependencyFactory = defaultDepen
         await logger.record({ useCase: 'chat', provider: info.id, model: fallback.model, status: 'fallback', durationMs, fallbackUsed: true, errorCode: 'UNCONFIGURED' })
         return
       }
-      const grounded = ai.groundedChat(input.message, input.history, allClubs, controller.signal)
+      const grounded = await ai.groundedChat(input.message, input.history, allClubs, controller.signal)
       res.writeHead(200, {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive', 'X-Accel-Buffering': 'no',

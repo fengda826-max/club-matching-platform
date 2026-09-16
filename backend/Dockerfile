@@ -5,6 +5,10 @@ RUN apt-get update \
 
 FROM base AS build
 WORKDIR /workspace
+# better-sqlite3 是原生模块：slim 镜像缺少编译工具链，需临时装上
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package.json
 COPY frontend/package.json frontend/package.json

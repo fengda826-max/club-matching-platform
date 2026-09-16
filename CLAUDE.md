@@ -12,12 +12,10 @@ A modern, full-stack AI-powered platform helping college students discover and j
 
 **Architecture**: Monorepo with separate frontend and backend workspaces
 - **Frontend**: Vue 3 + TypeScript + Vite + Pinia + Vue Router + Element Plus + Vitest (testing)
-- **Backend**: Node.js + Express + TypeScript + Prisma ORM + SQLite
-- **AI**: Provider abstraction - supports Anthropic Claude native, and OpenAI-compatible APIs (火山引擎方舟, 火山引擎豆包, OpenAI, Azure OpenAI, self-hosted open-source models)
-- **Default**: 火山引擎(Volcano Engine) 字节方舟 API - `ark-code-latest` model
-- **Deployment**: Supports two models:
-  - **Single-server**: Backend hosts built frontend static files (ideal for Alibaba Cloud/Tencent Cloud ECS)
-  - **Separate**: Frontend on Vercel/Netlify + Backend on any Node.js hosting
+- **Backend**: Node.js + Express + TypeScript + Prisma ORM + SQLite (compiled with `tsc`, run as `node dist/server.js`)
+- **AI**: Provider gateway - supports Anthropic Claude native and OpenAI-compatible APIs. Default: **阿里云百炼 (DashScope)** — `qwen-flash` chat + `text-embedding-v3` embeddings (1024 dims).
+- **混合检索 (hybrid retrieval)**: 向量语义召回 (LangChain.js `OpenAIEmbeddings` + **sqlite-vec** `vec0` 虚拟表) → 规则层确定性打分 → AI 只写理由。`RAG_ENABLED` 开关控制；检索失败自动降级到关键词/规则。
+- **Deployment**: Single-server — backend hosts the built frontend static files (Alibaba/Tencent Cloud ECS), or Docker Compose (app + nginx). SQLite + 向量表共用一个持久化文件。
 
 ---
 
@@ -284,23 +282,29 @@ cd backend && npm start
 
 ## Environment Variables
 
-**Backend (`backend/.env`):**
+**Backend (`backend/.env`):** (see `backend/.env.example`)
 ```bash
-# Database
+# Database — SQLite；向量表 (sqlite-vec) 与业务库共用同一个文件
 DATABASE_URL="file:./dev.db"
 
 # Server
 PORT=3001
 CORS_ORIGIN=http://localhost:517*,https://localhost:517*
 
-# AI Configuration
+# AI Configuration — 阿里云百炼 (DashScope, OpenAI-compatible)
 AI_PROVIDER=openai-compat        # Options: anthropic | openai-compat
-AI_API_KEY=your_api_key_here
-AI_BASE_URL=https://ark.cn-beijing.volces.com/api/coding/v3  # 火山引擎方舟
-AI_MODEL=ark-code-latest
+AI_API_KEY=your_dashscope_key_here
+AI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+AI_MODEL=qwen-flash
 AI_TIMEOUT=30000
 AI_MAX_RETRIES=2
-# AI_TEMPERATURE=0.7
+# AI_TEMPERATURE=0.3
+
+# RAG — 混合检索（向量语义召回 + 规则打分），对话与向量共用同一个百炼端点
+AI_EMBEDDING_MODEL=text-embedding-v3
+AI_EMBEDDING_DIM=1024
+RAG_ENABLED=true
+RAG_TOP_K=5
 
 # For Anthropic native use:
 # AI_PROVIDER=anthropic
@@ -308,6 +312,8 @@ AI_MAX_RETRIES=2
 # AI_MODEL=claude-3-7-sonnet-20250219
 # AI_BASE_URL=https://api.anthropic.com
 ```
+
+> **Security**: `backend/.env` is gitignored — never commit the real key. If a key is pasted into chat/logs, rotate it in the Alibaba Cloud console.
 
 **Frontend (`frontend/.env`):**
 ```bash
@@ -318,7 +324,7 @@ VITE_API_URL=http://localhost:3001/api
 **Without AI API Key**: App works in limited mode (browsing only).
 **With API Key**: Full AI features enabled.
 
-**Default Configuration**: Uses **火山引擎(Volcano Engine) 字节方舟** with OpenAI-compatible API.
+**Default Configuration**: **阿里云百炼 (DashScope)** — `qwen-flash` chat + `text-embedding-v3` embeddings via OpenAI-compatible API.
 
 ---
 
@@ -326,19 +332,19 @@ VITE_API_URL=http://localhost:3001/api
 
 ### 1. AI Intelligent Matching (✨)
 
-**Backend**: `POST /api/ai/matching` via `AIService.generateMatching()`
+**Backend**: `POST /api/matching/extract-preferences` + `POST /api/matching/recommend` via `RecommendationService`
 
 **Frontend**: [Matching.vue](frontend/src/pages/Matching.vue)
 
-User fills out a preference form:
+User fills out a preference form (or describes needs in natural language → AI extracts, user confirms):
 - Interests (tags with Enter to add/remove)
 - Skill level (beginner/intermediate/advanced/expert)
 - Goals (tags with Enter to add/remove)
 
-AI analyzes preferences against all clubs and returns:
-- Top 5 matches ranked by match score (0-100)
-- Explicit match reasons (why each club is suitable)
-- Structured JSON output for reliable parsing
+Hybrid pipeline returns explainable results:
+- 向量层语义召回候选池 → 规则层硬过滤 + 四维打分（兴趣 40/目标 25/时间 20/技能 15）→ AI 只写理由（`qwen-flash`）
+- Top 5 ranked by **deterministic rule score** (0-100)，模型不改分数
+- Structured output validated by Zod; hallucinated/duplicate club IDs rejected → 降级为可复现规则结果
 
 ### 2. Streaming AI Q&A Chat (💬)
 
@@ -348,7 +354,7 @@ AI analyzes preferences against all clubs and returns:
 
 Natural language chat interface:
 - Ask questions about clubs in natural language
-- AI answers using full club database as context
+- AI answers grounded in the top-k club knowledge passages retrieved from sqlite-vec (not the full DB); falls back to keyword retrieval if vector search fails
 - Server-Sent Events (SSE) for real-time streaming response
 - Suggested quick questions for new users
 - Conversation history maintained
@@ -454,7 +460,7 @@ The backend implements a clean provider abstraction pattern:
   - ✅ Azure OpenAI
   - ✅ Self-hosted open-source models (e.g., Llama, Qwen, etc.)
 
-**Current Default**: 火山引擎字节方舟 `ark-code-latest`
+**Current Default**: 阿里云百炼 (DashScope) `qwen-flash` chat + `text-embedding-v3` embeddings
 
 ---
 
@@ -509,7 +515,8 @@ model Club {
 
 ### AI
 - `GET /api/ai/health` - Check AI provider health
-- `POST /api/ai/matching` - Generate matching recommendations
+- `POST /api/matching/extract-preferences` - Extract structured preferences from natural language
+- `POST /api/matching/recommend` - Hybrid matching (vector recall + rule scoring + AI reasons)
 - `POST /api/ai/chat/stream` - Streaming chat (SSE)
 - `POST /api/ai/chat` - Non-streaming chat completion
 - `POST /api/ai/generate-description` - Generate club description

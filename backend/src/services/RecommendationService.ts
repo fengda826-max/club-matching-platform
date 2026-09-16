@@ -7,6 +7,7 @@ import { AppError } from '../middleware/errorHandler'
 import type { AIRequestLogger } from './AIRequestLogger'
 import type { ClubService } from './ClubService'
 import type { RuleMatchingService } from './RuleMatchingService'
+import type { VectorRetrievalService } from './VectorRetrievalService'
 
 const explanationSchema = z.object({
   matches: z.array(z.object({
@@ -21,6 +22,8 @@ type Dependencies = {
   clubService: Pick<ClubService, 'getAllClubs'>
   ruleService: Pick<RuleMatchingService, 'match'>
   logger: Pick<AIRequestLogger, 'record'>
+  retrieval?: Pick<VectorRetrievalService, 'retrieveClubIds'> | null
+  ragTopK?: number
 }
 
 export type RecommendationMatch = RuleMatch & {
@@ -34,12 +37,16 @@ export class RecommendationService {
   private readonly clubService: Dependencies['clubService']
   private readonly ruleService: Dependencies['ruleService']
   private readonly logger: Dependencies['logger']
+  private readonly retrieval: Dependencies['retrieval']
+  private readonly ragTopK: number
 
   constructor(dependencies: Dependencies) {
     this.provider = dependencies.provider
     this.clubService = dependencies.clubService
     this.ruleService = dependencies.ruleService
     this.logger = dependencies.logger
+    this.retrieval = dependencies.retrieval ?? null
+    this.ragTopK = dependencies.ragTopK ?? 5
   }
 
   async extractPreferences(text: string, signal?: AbortSignal) {
@@ -71,8 +78,11 @@ export class RecommendationService {
 
   async recommend(preferenceInput: UserPreference, signal?: AbortSignal) {
     const preference = userPreferenceSchema.parse(preferenceInput)
-    const clubs = await this.clubService.getAllClubs()
-    const clubById = new Map(clubs.map(club => [club.id, club]))
+    const allClubs = await this.clubService.getAllClubs()
+    const clubById = new Map(allClubs.map(club => [club.id, club]))
+    // 混合检索第一层：向量语义召回。规则层仍是权威的合格+打分层，
+    // 这里只影响进入规则层的候选池顺序，绝不丢弃规则合格项，失败即回落全量。
+    const clubs = await this.applyVectorRecall(preference, allClubs)
     const ruleMatches = this.ruleService.match(preference, clubs)
       .filter(match => clubById.has(match.clubId))
       .slice(0, 5)
@@ -114,6 +124,32 @@ export class RecommendationService {
     } catch (error) {
       await this.logFailure('recommendation', error, true)
       return this.rulesOnly(ruleMatches, clubById, '模型说明不可用，已降级为可复现的规则结果')
+    }
+  }
+
+  /**
+   * 向量召回：把语义最相关的社团排到候选池前面，其余社团保留在后（不丢弃）。
+   * 规则层随后会做硬约束过滤与确定性打分排序，因此这一步不改变最终评分，
+   * 只是演示可扩展的语义召回管线；社团数量很大时可据此收窄候选。
+   * 未启用检索、无可向量化文本或检索失败时，原样返回全量。
+   */
+  private async applyVectorRecall(preference: UserPreference, clubs: Club[]): Promise<Club[]> {
+    if (!this.retrieval) return clubs
+    const queryText = [...preference.interests, ...preference.goals, ...preference.availableTimes, preference.campus]
+      .filter((v): v is string => Boolean(v && v.trim()))
+      .join('，')
+    if (!queryText.trim()) return clubs
+    try {
+      const recalledIds = await this.retrieval.retrieveClubIds(queryText, Math.max(this.ragTopK, clubs.length))
+      if (recalledIds.length === 0) return clubs
+      const order = new Map(recalledIds.map((id, index) => [id, index]))
+      return clubs.slice().sort((a, b) => {
+        const ra = order.has(a.id) ? order.get(a.id)! : Number.MAX_SAFE_INTEGER
+        const rb = order.has(b.id) ? order.get(b.id)! : Number.MAX_SAFE_INTEGER
+        return ra - rb
+      })
+    } catch {
+      return clubs
     }
   }
 

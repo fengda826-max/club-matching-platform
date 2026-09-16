@@ -1,1 +1,0 @@
-function e(e,t){let n=e.trim();return n&&!t.includes(n)&&t.push(n),``}function t(e,t){let n=t.indexOf(e);n>-1&&t.splice(n,1)}export{t as n,e as t};

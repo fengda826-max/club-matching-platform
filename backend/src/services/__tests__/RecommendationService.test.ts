@@ -26,7 +26,7 @@ function completion<T>(data: T): AICompletion<T> {
   return { data, usage: { inputTokens: 12, outputTokens: 8 }, provider: 'openai-compat', model: 'deepseek-v4', durationMs: 25 }
 }
 
-function makeService(structured: unknown | Error) {
+function makeService(structured: unknown | Error, retrieval?: { retrieveClubIds: ReturnType<typeof vi.fn> }) {
   const provider = {
     generateStructured: vi.fn().mockImplementation(async () => {
       if (structured instanceof Error) throw structured
@@ -39,6 +39,7 @@ function makeService(structured: unknown | Error) {
     clubService: { getAllClubs: vi.fn().mockResolvedValue(clubs) },
     ruleService: { match: vi.fn().mockReturnValue(ruleMatches) },
     logger,
+    retrieval,
   })
   return { service, provider, logger }
 }
@@ -94,5 +95,23 @@ describe('RecommendationService', () => {
     vi.mocked(service['clubService'].getAllClubs).mockResolvedValue([])
     await expect(service.recommend(preference)).resolves.toMatchObject({ mode: 'rules-only', matches: [] })
     expect(provider.generateStructured).not.toHaveBeenCalled()
+  })
+
+  it('still returns deterministic results when vector recall fails', async () => {
+    const retrieval = { retrieveClubIds: vi.fn().mockRejectedValue(new Error('embedding down')) }
+    const { service } = makeService({ matches: [{ clubId: 1, reason: '兴趣和竞赛目标高度吻合，时间也合适。', caveats: [] }] }, retrieval)
+    const result = await service.recommend(preference)
+    expect(retrieval.retrieveClubIds).toHaveBeenCalled()
+    expect(result.mode).toBe('hybrid')
+    expect(result.matches[0]).toMatchObject({ clubId: 1, score: 88 })
+  })
+
+  it('uses vector recall to order the candidate pool without dropping rule-eligible clubs', async () => {
+    const retrieval = { retrieveClubIds: vi.fn().mockResolvedValue([1]) }
+    const { service } = makeService({ matches: [{ clubId: 1, reason: '兴趣和竞赛目标高度吻合，时间也合适。', caveats: [] }] }, retrieval)
+    const result = await service.recommend(preference)
+    expect(retrieval.retrieveClubIds).toHaveBeenCalledWith(expect.stringContaining('编程'), expect.any(Number))
+    expect(result.mode).toBe('hybrid')
+    expect(result.matches[0].score).toBe(88)
   })
 })
