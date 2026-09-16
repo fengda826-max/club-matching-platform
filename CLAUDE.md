@@ -6,16 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**社团招新智能匹配平台** (Club Recruitment Intelligent Matching Platform)
+**CampusMatch AI｜社团招新智能匹配平台**
 
-A modern, full-stack AI-powered platform helping college students discover and join suitable clubs through intelligent recommendations and natural language Q&A.
+A production-grade PoC for club recruitment: students get explainable AI-assisted recommendations (rules decide the score, AI only writes the reason), club operators see anonymized conversion metrics, and admins get an authenticated management panel.
 
-**Architecture**: Monorepo with separate frontend and backend workspaces
-- **Frontend**: Vue 3 + TypeScript + Vite + Pinia + Vue Router + Element Plus + Vitest (testing)
-- **Backend**: Node.js + Express + TypeScript + Prisma ORM + SQLite (compiled with `tsc`, run as `node dist/server.js`)
-- **AI**: Provider gateway - supports Anthropic Claude native and OpenAI-compatible APIs. Default: **阿里云百炼 (DashScope)** — `qwen-flash` chat + `text-embedding-v3` embeddings (1024 dims).
-- **混合检索 (hybrid retrieval)**: 向量语义召回 (LangChain.js `OpenAIEmbeddings` + **sqlite-vec** `vec0` 虚拟表) → 规则层确定性打分 → AI 只写理由。`RAG_ENABLED` 开关控制；检索失败自动降级到关键词/规则。
-- **Deployment**: Single-server — backend hosts the built frontend static files (Alibaba/Tencent Cloud ECS), or Docker Compose (app + nginx). SQLite + 向量表共用一个持久化文件。
+**Architecture**: Monorepo with separate frontend and backend npm workspaces
+- **Frontend**: Vue 3 + TypeScript + Vite + Pinia + Vue Router + Vitest
+- **Backend**: Node.js + Express + TypeScript + Prisma ORM + SQLite (compiled with `tsc`, run as `node dist/server.js`; dev uses `ts-node-dev`)
+- **AI provider**: hand-written gateway (`AIProvider` interface) — `AnthropicProvider` and `OpenAICompatProvider`. Default: **阿里云百炼 (DashScope)** OpenAI-compatible endpoint — `qwen-flash` chat + `text-embedding-v3` embeddings (1024 dims)
+- **混合检索 (hybrid retrieval)**: 向量语义召回 (LangChain.js `OpenAIEmbeddings` + **sqlite-vec** `vec0` 虚拟表，和业务库共用同一个 SQLite 文件) → 规则层确定性打分（兴趣 40/目标 25/时间 20/技能 15，权重固定不可由 AI 改动）→ AI 只写推荐理由。`RAG_ENABLED` 开关控制；检索/模型失败时自动降级（问答退关键词检索，匹配退纯规则结果）
+- **Deployment**: single server — Docker Compose (`app` container + `web` Nginx container), backend serves the built frontend static files, SQLite + sqlite-vec share one file in a named volume. See `README.md` for the full deployment guide.
 
 ---
 
@@ -64,59 +64,45 @@ Primary colors used throughout the application:
 
 ```
 club-matching-platform/
-├── backend/                          # Node.js backend
+├── docker-compose.yml                 # app (Express) + web (Nginx) containers
+├── deploy/
+│   ├── Dockerfile.web                 # Nginx image serving frontend/dist + reverse proxy
+│   └── nginx.conf
+├── backend/
 │   ├── prisma/
-│   │   └── schema.prisma            # Database schema (Club model)
+│   │   ├── schema.prisma              # Club / RecruitmentIntent / AIRequestLog (SQLite)
+│   │   └── seed.ts                    # Seeds demo clubs
+│   ├── scripts/
+│   │   └── index-vectors.ts           # Rebuild the sqlite-vec knowledge index
 │   ├── src/
-│   │   ├── providers/               # AI provider abstraction layer
-│   │   │   ├── AnthropicProvider.ts    # Anthropic Claude native
-│   │   │   ├── OpenAICompatProvider.ts # OpenAI-compatible endpoints
-│   │   │   ├── BaseProvider.ts         # Base class with shared utilities
-│   │   │   ├── index.ts                # Provider factory
-│   │   │   └── types.ts               # TypeScript interfaces
+│   │   ├── ai/                        # embeddings.ts (LangChain), vectorStore.ts (sqlite-vec)
+│   │   ├── providers/                 # AIProvider interface, Anthropic/OpenAI-compat implementations
 │   │   ├── services/
-│   │   │   ├── AIService.ts          # AI business logic
-│   │   │   └── ClubService.ts        # Club data operations
-│   │   ├── routes/
-│   │   │   ├── ai.ts                # AI endpoints (matching, chat, generation)
-│   │   │   └── clubs.ts             # Club CRUD endpoints
-│   │   └── app.ts                   # Express app entry
+│   │   │   ├── AIService.ts               # groundedChat (RAG Q&A), chatComplete, description/tags
+│   │   │   ├── RecommendationService.ts   # vector recall → RuleMatchingService → AI reasons
+│   │   │   ├── RuleMatchingService.ts     # deterministic hard filters + 4-dimension scoring
+│   │   │   ├── VectorRetrievalService.ts  # embed query → sqlite-vec KNN
+│   │   │   ├── ClubService.ts, AnalyticsService.ts, IntentService.ts, AIRequestLogger.ts
+│   │   ├── routes/                    # ai.ts, matching.ts, clubs.ts, auth.ts, analytics.ts, intents.ts
+│   │   ├── middleware/                # adminAuth.ts (HMAC-signed cookie), rateLimits.ts, errorHandler.ts
+│   │   ├── data/                      # demoClubs.ts, clubKnowledge.ts (RAG corpus), ensureDemoData.ts, ensureVectorIndex.ts
+│   │   ├── schemas/                   # Zod schemas (chat, club, matching)
+│   │   ├── app.ts, server.ts
 │   └── package.json
-├── frontend/                         # Vue 3 frontend
+├── frontend/
 │   ├── src/
-│   │   ├── api/
-│   │   │   └── client.ts            # Backend API client (type-safe)
-│   │   ├── router/
-│   │   │   └── index.ts             # Vue Router configuration (5 routes)
-│   │   ├── services/               # Business logic layer
-│   │   │   ├── aiService.ts        # AI interaction + SSE streaming handling
-│   │   │   ├── apiClient.ts        # API wrapper
-│   │   │   ├── clubService.ts       # Club data operations
-│   │   │   └── __tests__/          # Vitest unit tests
-│   │   ├── shared/                 # Shared utilities
-│   │   │   ├── tags.ts             # Tag parsing/validation
-│   │   │   ├── validators.ts        # Input validation
-│   │   │   ├── constants.ts         # App constants
-│   │   │   └── __tests__/          # Utility tests
-│   │   ├── stores/
-│   │   │   ├── clubs.ts            # Club data state (Pinia)
-│   │   │   └── user.ts             # User preferences + chat history (Pinia)
-│   │   ├── pages/
-│   │   │   ├── Index.vue          # Home page
-│   │   │   ├── Clubs.vue          # Club listing with filters
-│   │   │   ├── Matching.vue       # AI matching page
-│   │   │   ├── Chat.vue           # AI Q&A streaming chat
-│   │   │   └── Admin.vue          # Admin management panel
-│   │   ├── types/
-│   │   │   └── index.ts            # TypeScript interfaces
-│   │   ├── App.vue                 # Root component
-│   │   └── main.ts                 # App entry (Element Plus registration)
-│   ├── index.html
+│   │   ├── api/client.ts              # Typed backend API client — single source of truth
+│   │   ├── router/index.ts            # 5 routes: / /clubs /matching /chat /admin
+│   │   ├── stores/                    # clubs.ts, user.ts (Pinia)
+│   │   ├── pages/                     # Index, Clubs, Matching, Chat, Admin
+│   │   ├── components/                # layout/, matching/, chat/, admin/, ui/
+│   │   ├── shared/                    # tags.ts, validators.ts, constants.ts
+│   │   └── types/index.ts
 │   ├── vite.config.ts
 │   └── package.json
-├── package.json                      # Workspace root
-├── vercel.json                       # Vercel deployment config
-└── .env                              # Environment variables
+├── package.json                       # npm workspaces root (frontend, backend)
+├── README.md                          # interview-facing PoC narrative, deployment guide
+└── CLAUDE.md                          # this file
 ```
 
 ---
@@ -127,156 +113,56 @@ club-matching-platform/
 
 ```bash
 cd club-matching-platform
-npm run install-all
+npm install               # npm workspaces auto-installs frontend/ and backend/
 ```
+
+### First-time setup (database + RAG index)
+
+```bash
+cd backend
+npx prisma migrate deploy
+npm run seed              # inserts demo clubs
+npm run index:vectors     # embeds club knowledge into sqlite-vec (needs AI_API_KEY)
+```
+
+`index:vectors` can be skipped — the server auto-builds the index on startup if it's empty and a key is configured.
 
 ### Local Development
 
 ```bash
 cd club-matching-platform
-npm run dev
+npm run dev                # concurrently runs backend (ts-node-dev) + frontend (vite)
 ```
 
 - Frontend: http://localhost:5175/
 - Backend: http://localhost:3001/
 - Backend health check: http://localhost:3001/api/health
+- AI health check: http://localhost:3001/api/ai/health
 
 ### Build for Production
 
 ```bash
-npm run build
+npm run build              # builds frontend/dist and backend/dist (tsc)
 ```
 
-Output: `frontend/dist/` (frontend), `backend/dist/` (backend)
+The backend is compiled and started with `node dist/server.js` in production (not `tsx`/`ts-node`).
 
 ---
 
 ## Deployment
 
-### Single-Server Deployment (Alibaba Cloud/Tencent Cloud ECS)
-
-**Recommended for cloud virtual server deployment.** When `NODE_ENV=production`, the backend automatically serves the built frontend static files from `frontend/dist`. This allows you to deploy everything on a single server with just Node.js.
-
-**Steps for Alibaba Cloud/Tencent Cloud:**
-
-1. Push code to your cloud server
-2. Install dependencies:
-   ```bash
-   npm run install-all
-   ```
-3. Build:
-   ```bash
-   npm run build
-   ```
-4. Generate Prisma client:
-   ```bash
-   cd backend && npx prisma generate
-   ```
-5. Configure environment:
-   - Copy `backend/.env.example` to `backend/.env`
-   - Set `NODE_ENV=production`
-   - Set your `AI_API_KEY` and other config
-   - Set `PORT=3001` (or your preferred port)
-6. Start the server with PM2 (recommended):
-   ```bash
-   cd backend
-   pm2 start dist/app.js --name club-matching
-   ```
-7. Configure security group/firewall to open port 3001
-8. Access at: `http://<your-server-ip>:3001`
-
-**For production with domain:** Use Nginx as reverse proxy with SSL:
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name your-domain.com;
-    
-    ssl_certificate /path/to/your/cert.pem;
-    ssl_certificate_key /path/to/your/key.pem;
-    
-    location / {
-        proxy_pass http://localhost:3001;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_http_version 1.1;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-### Separate Deployment
-
-- **Frontend**: Can be deployed to Vercel, Netlify, or any static hosting
-- **Backend**: Can be deployed to any Node.js hosting (Render, Fly.io, etc.)
-- Update `VITE_API_URL` in `frontend/.env` to point to your backend domain
-
-### Quick Demo Deployment (for 展示 / 一次性演示)
-
-If you just need to **show the project** for an interview or demonstration (not permanent production), use this simplified method:
+**Only supported path: Docker Compose on a persistent-filesystem host** (Alibaba Cloud / Tencent Cloud ECS, or any VM with Docker). SQLite + the sqlite-vec vector table need a real filesystem — this is **not** compatible with serverless/edge platforms (Vercel, Render's ephemeral free tier, etc.).
 
 ```bash
-# 1. Install dependencies
-cd club-matching-platform
-npm run install-all
-
-# 2. Build frontend + backend
-npm run build
-
-# 3. Generate Prisma client
-cd backend && npx prisma generate
-
-# 4. Make sure your AI_API_KEY is set in backend/.env
-# Already configured: NODE_ENV=production, so backend will serve frontend automatically
-
-# 5. Start server directly (no need for PM2 for temporary demo)
-cd backend && npm start
-
-# Server running at: http://<your-server-ip>:3001
+cp backend/.env.example backend/.env
+# edit backend/.env — set ADMIN_PASSWORD, SESSION_SECRET, and AI_API_KEY
+docker compose --env-file backend/.env up -d --build
+curl --fail http://127.0.0.1/api/health
 ```
 
-**Notes for demo:**
-- Just open port 3001 in your cloud server security group/firewall
-- No need for domain name or SSL certificate during demo (use IP + port directly)
-- When demo ends, just Ctrl+C to stop
-
-### Render Deployment
-
-**Recommended for free-tier demo hosting.** Render is perfect for this project because:
-- Free tier available for demo
-- Supports monorepo with workspaces
-- Auto-deploys from GitHub
-
-**Render Configuration:**
-
-- **Root directory**: `./` (project root)
-- **Build command**: `npm run install-all && npm run build && cd backend && npx prisma generate`
-- **Start command**: `cd backend && npm start`
-- **Environment variables** to set in Render dashboard:
-  ```
-  NODE_ENV=production
-  PORT=10000
-  AI_PROVIDER=openai-compat
-  AI_API_KEY=your_actual_api_key_here
-  AI_BASE_URL=https://ark.cn-beijing.volces.com/api/coding/v3
-  AI_MODEL=ark-code-latest
-  AI_TIMEOUT=30000
-  AI_MAX_RETRIES=2
-  DATABASE_URL=file:./dev.db
-  ```
-
-**Notes for Render:**
-- Render's filesystem is ephemeral (data resets on restart) - acceptable for demo/portfolio
-- Free tier spins down after inactivity - normal behavior for free tier
-- Build may take 2-5 minutes on free tier - be patient
+- `web` (Nginx) is the only container exposing a port (default 80); `app` (Express) is internal-only.
+- Data (SQLite + sqlite-vec) lives in the named volume `campusmatch_data` — restarting containers doesn't lose data.
+- Full step-by-step guide, security-group notes, and the 5-minute demo script are in `README.md` and `docs/demo-script.md`.
 
 ---
 
@@ -284,380 +170,213 @@ cd backend && npm start
 
 **Backend (`backend/.env`):** (see `backend/.env.example`)
 ```bash
-# Database — SQLite；向量表 (sqlite-vec) 与业务库共用同一个文件
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="file:./dev.db"          # SQLite; sqlite-vec table shares this file
 
-# Server
 PORT=3001
 CORS_ORIGIN=http://localhost:517*,https://localhost:517*
+NODE_ENV=development
 
-# AI Configuration — 阿里云百炼 (DashScope, OpenAI-compatible)
-AI_PROVIDER=openai-compat        # Options: anthropic | openai-compat
+# AI — 阿里云百炼 (DashScope, OpenAI-compatible)
+AI_PROVIDER=openai-compat             # anthropic | openai-compat
 AI_API_KEY=your_dashscope_key_here
 AI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 AI_MODEL=qwen-flash
 AI_TIMEOUT=30000
 AI_MAX_RETRIES=2
-# AI_TEMPERATURE=0.3
+AI_TEMPERATURE=0.3
 
-# RAG — 混合检索（向量语义召回 + 规则打分），对话与向量共用同一个百炼端点
+# RAG — hybrid retrieval (vector semantic recall + rule scoring); shares the chat endpoint/key
 AI_EMBEDDING_MODEL=text-embedding-v3
 AI_EMBEDDING_DIM=1024
 RAG_ENABLED=true
 RAG_TOP_K=5
 
-# For Anthropic native use:
-# AI_PROVIDER=anthropic
-# AI_API_KEY=your_anthropic_key
-# AI_MODEL=claude-3-7-sonnet-20250219
-# AI_BASE_URL=https://api.anthropic.com
+ADMIN_PASSWORD=replace_with_a_strong_demo_password
+SESSION_SECRET=replace_with_a_long_random_secret
+COOKIE_SECURE=false
+SEED_DEMO_DATA=true
 ```
 
-> **Security**: `backend/.env` is gitignored — never commit the real key. If a key is pasted into chat/logs, rotate it in the Alibaba Cloud console.
+> **Security**: `backend/.env` is gitignored — never commit the real key. If a key is ever pasted into chat/logs, rotate it in the Alibaba Cloud console.
 
 **Frontend (`frontend/.env`):**
 ```bash
-# Backend API URL
-VITE_API_URL=http://localhost:3001/api
+VITE_BACKEND_URL=/api     # or an absolute URL for a separately hosted backend
 ```
 
-**Without AI API Key**: App works in limited mode (browsing only).
-**With API Key**: Full AI features enabled.
-
-**Default Configuration**: **阿里云百炼 (DashScope)** — `qwen-flash` chat + `text-embedding-v3` embeddings via OpenAI-compatible API.
+**Without a valid AI Key**: AI endpoints report `configured: false`; club browsing, structured-form matching (rules-only) still work.
+**With a valid key**: full hybrid RAG + AI reasoning is enabled.
 
 ---
 
 ## Key Features
 
-### 1. AI Intelligent Matching (✨)
+### 1. Hybrid AI Matching (✨)
 
-**Backend**: `POST /api/matching/extract-preferences` + `POST /api/matching/recommend` via `RecommendationService`
+**Backend**: `POST /api/matching/extract-preferences` (optional NL→preferences) + `POST /api/matching/recommend` via `RecommendationService`
 
 **Frontend**: [Matching.vue](frontend/src/pages/Matching.vue)
 
-User fills out a preference form (or describes needs in natural language → AI extracts, user confirms):
-- Interests (tags with Enter to add/remove)
-- Skill level (beginner/intermediate/advanced/expert)
-- Goals (tags with Enter to add/remove)
+Pipeline: vector recall orders the candidate pool (semantic) → `RuleMatchingService` applies hard constraints and computes the deterministic score (interest 40 / goal 25 / schedule 20 / skill 15) → AI (`qwen-flash`) writes a short reason per candidate only, via `withStructuredOutput`-style Zod validation. Hallucinated or duplicate club IDs are rejected and the response falls back to `rules-only` mode. The model can never change a score.
 
-Hybrid pipeline returns explainable results:
-- 向量层语义召回候选池 → 规则层硬过滤 + 四维打分（兴趣 40/目标 25/时间 20/技能 15）→ AI 只写理由（`qwen-flash`）
-- Top 5 ranked by **deterministic rule score** (0-100)，模型不改分数
-- Structured output validated by Zod; hallucinated/duplicate club IDs rejected → 降级为可复现规则结果
+### 2. Streaming AI Q&A Chat (💬) — RAG-grounded
 
-### 2. Streaming AI Q&A Chat (💬)
+**Backend**: `POST /api/ai/chat/stream` (SSE), `POST /api/ai/chat` (non-streaming) via `AIService.groundedChat`
 
-**Backend**: `POST /api/ai/chat/stream` (SSE streaming), `POST /api/ai/chat` (non-streaming)
+**Frontend**: [Chat.vue](frontend/src/pages/Chat.vue), sources rendered by `AnswerSources.vue`
 
-**Frontend**: [Chat.vue](frontend/src/pages/Chat.vue)
-
-Natural language chat interface:
-- Ask questions about clubs in natural language
-- AI answers grounded in the top-k club knowledge passages retrieved from sqlite-vec (not the full DB); falls back to keyword retrieval if vector search fails
-- Server-Sent Events (SSE) for real-time streaming response
-- Suggested quick questions for new users
-- Conversation history maintained
-
-Example questions:
-- "有哪些技术类社团？"
-- "哪个社团适合编程初学者？"
-- "我喜欢摄影，应该加哪个社团？"
+The question is embedded and matched against `club_doc_vectors` (sqlite-vec) for the top-k relevant knowledge passages; those are injected as grounding and returned as `sources` in the first SSE frame. Falls back to keyword retrieval if vector search fails or isn't configured.
 
 ### 3. AI Content Generation for Admin (⚡)
 
-**Backend endpoints**:
-- `POST /api/ai/generate-description` - Auto-generate club description
-- `POST /api/ai/suggest-tags` - Suggest relevant tags
-
-**Frontend**: [Admin.vue](frontend/src/pages/Admin.vue)
-
-AI-powered content generation:
-- Auto-generate descriptions from club name + category
-- Suggest relevant tags automatically
-- One-click generation, editable before saving
-- Reduces admin content creation effort
+- `POST /api/ai/generate-description`, `POST /api/ai/suggest-tags` (both require admin auth)
 
 ### 4. Smart Club Browsing (🔍)
 
-**Frontend**: [Clubs.vue](frontend/src/pages/Clubs.vue)
-
-Advanced filtering system:
-- Real-time search (debounced)
-- Category filter chips (tech, sports, arts, academic, cultural)
-- Tag filter (multi-select from all tags)
-- Responsive card grid with hover effects
-- Quick detail modal on click
+[Clubs.vue](frontend/src/pages/Clubs.vue) — search, category/tag filters, detail modal.
 
 ### 5. Admin Management (⚙️)
 
-**Frontend**: [Admin.vue](frontend/src/pages/Admin.vue)
-**Backend**: `GET/POST/PUT/DELETE /api/clubs/*`
+[Admin.vue](frontend/src/pages/Admin.vue) + `/api/clubs` CRUD. Write endpoints (`POST`/`PUT`/`DELETE`) require `requireAdmin` — an HMAC-SHA256-signed, HttpOnly session cookie set by `POST /api/auth/login`.
 
-Complete club CRUD operations:
-- Add new clubs
-- Edit existing clubs
-- Delete clubs
-- View statistics (total clubs, by category)
+### 6. Operations Dashboard
 
-### 6. Modern Aesthetic
-
-**Design Language**: Element Plus components + custom CSS theme
-
-Key design principles:
-- **Emoji-based UI**: Uses emojis for icons and category indicators
-- **Gradient backgrounds**: Multi-layer radial gradients for depth
-- **Animated elements**: Floating shapes/blobs with smooth animations
-- **Glassmorphism effects**: Backdrop blur on overlays and modals
-- **Micro-interactions**: Pulse effects, hover lifts, smooth transitions
-- **Bold typography**: Large, expressive headings with gradient text
-- **Card-based layouts**: Each page uses card-based layouts
-- **Responsive navigation**: Mobile menu + desktop nav
-- **Chinese locale**: Element Plus configured for Simplified Chinese
-
-Visual identity:
-- **Coral + Teal**: Energetic, warm, approachable
-- **Clean white backgrounds**: For readability
-- **Subtle shadows**: Soft, layered shadows for depth
-- **Smooth animations**: 0.3-0.5s ease for all transitions
+`GET /api/analytics/summary` — aggregated business metrics (conversion, top categories) and AI run metrics (token cost, fallback rate). Only aggregates are exposed; no PII, prompts, or raw model output.
 
 ---
 
 ## AI Integration Architecture
 
-### Provider Abstraction
+- `src/providers/` — hand-written `AIProvider` interface (`initialize/generateStructured/chat/chatComplete/checkHealth/getProviderInfo`), implemented by `AnthropicProvider` and `OpenAICompatProvider`. No embedding method here — embeddings are a separate concern.
+- `src/ai/embeddings.ts` — `createEmbeddings()` returns a LangChain `OpenAIEmbeddings` pointed at the same DashScope base URL/key.
+- `src/ai/vectorStore.ts` — `SqliteVecStore`: opens a second `better-sqlite3` connection to the same SQLite file as Prisma (Prisma can't load native extensions), loads `sqlite-vec`, manages the `club_doc_vectors` virtual table. **Binding gotcha**: integer aux columns must be bound as `BigInt`, embeddings as JSON strings — plain JS numbers/Float32Array cause a "type mismatch" error.
+- `src/services/VectorRetrievalService.ts` — embeds the query, runs KNN, dedupes by clubId (closest distance wins).
+- Structured output: Zod schemas validated at runtime (no TS-cast-as-validation).
+- Reliability: per-call timeout, caller-side `AbortSignal` cancellation, bounded retry on 429/502/503/504, deterministic rule/keyword fallback on any AI or vector failure.
+- Observability (`AIRequestLog`): useCase, provider, model, status, duration, tokens, error code, fallback flag only — never raw prompts, answers, or student identity.
 
-The backend implements a clean provider abstraction pattern:
-- `AIProvider` interface defines common methods
-- `AnthropicProvider` - Native Anthropic Claude integration
-- `OpenAICompatProvider` - Works with any OpenAI-compatible API
-- Easy to add new providers
-
-### AI Capabilities
-
-1. **Structured Output Generation**
-   - System prompt engineering enforces JSON format
-   - Automatic JSON extraction from model output
-   - Type-safe parsing
-
-2. **Streaming Chat**
-   - Server-Sent Events (SSE) for real-time streaming
-   - Full conversation history support
-   - Temperature configurable per request
-
-3. **Different System Prompts per Use Case**
-   - Matching: focused on pairwise comparison and scoring
-   - Chat: focused on helpful, context-aware answers
-   - Content generation: focused on concise, engaging copy
-   - Tag suggestion: focused on relevant keywords
-
-**Supported Providers**:
-- `anthropic` - Native Anthropic Claude (default model: `claude-3-7-sonnet-20250219`)
-- `openai-compat` - OpenAI-compatible endpoints:
-  - ✅ 火山引擎(Volcano Engine) 字节方舟 - current default
-  - ✅ 火山引擎豆包
-  - ✅ OpenAI official
-  - ✅ Azure OpenAI
-  - ✅ Self-hosted open-source models (e.g., Llama, Qwen, etc.)
-
-**Current Default**: 阿里云百炼 (DashScope) `qwen-flash` chat + `text-embedding-v3` embeddings
+**Current default**: 阿里云百炼 (DashScope) — `qwen-flash` chat + `text-embedding-v3` embeddings. Swappable via `.env` (`AI_PROVIDER`/`AI_BASE_URL`/`AI_MODEL` — any OpenAI-compatible endpoint works).
 
 ---
 
-## Database (Prisma ORM)
+## Database (Prisma ORM, SQLite)
 
 **Schema**: [backend/prisma/schema.prisma](backend/prisma/schema.prisma)
 
 ```prisma
 model Club {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  category    String
-  description String
-  requirements String
-  memberCount Int
-  contact     String
-  tags        String   // Comma-separated tags
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  name             String   @unique
+  category         String
+  description      String
+  requirements     String
+  memberCount      Int
+  contact          String
+  tags             String   // comma-separated
+  activityTime     String   @default("")
+  weeklyHours      Int      @default(0)
+  campus           String   @default("")
+  fee              Int      @default(0)
+  skillRequirement String   @default("beginner")
+  isRecruiting     Boolean  @default(true)
+  intents          RecruitmentIntent[]
+}
+
+model RecruitmentIntent {   // anonymized, deduped per (clubId, sessionId)
+  clubId Int
+  source String
+  matchScore Int?
+  sessionId String
+}
+
+model AIRequestLog {        // AI run metrics only — no prompts/answers
+  useCase String
+  provider String
+  model String
+  status String
+  durationMs Int
+  fallbackUsed Boolean
 }
 ```
 
----
-
-## State Management (Frontend)
-
-**Pinia Stores**:
-
-**Clubs Store** ([clubs.ts](frontend/src/stores/clubs.ts)):
-- Fetch all clubs from backend
-- Filtered getters for search, category, tags
-- CRUD operations (add, update, delete)
-- Loading states
-
-**User Store** ([user.ts](frontend/src/stores/user.ts)):
-- User preferences (interests, skill level, goals)
-- Match results cache
-- Chat history
-- Loading states
+The sqlite-vec `club_doc_vectors` virtual table lives in the **same SQLite file** but is managed by a separate `better-sqlite3` connection (`src/ai/vectorStore.ts`), not by Prisma.
 
 ---
 
 ## API Endpoints
 
 ### Clubs
-- `GET /api/clubs` - Get all clubs
-- `GET /api/clubs/:id` - Get club by ID
-- `POST /api/clubs` - Create new club
-- `PUT /api/clubs/:id` - Update club
-- `DELETE /api/clubs/:id` - Delete club
-- `GET /api/clubs/stats` - Get statistics
+- `GET /api/clubs`, `GET /api/clubs/:id`
+- `POST /api/clubs`, `PUT /api/clubs/:id`, `DELETE /api/clubs/:id` — admin only
+- `GET /api/clubs/statistics/summary`, `GET /api/clubs/search/:keyword`, `GET /api/clubs/category/:category`, `GET /api/clubs/tags/all`
+
+### Matching
+- `POST /api/matching/extract-preferences` — NL → structured preferences (AI, user must confirm)
+- `POST /api/matching/recommend` — hybrid matching (vector recall + rule scoring + AI reasons)
 
 ### AI
-- `GET /api/ai/health` - Check AI provider health
-- `POST /api/matching/extract-preferences` - Extract structured preferences from natural language
-- `POST /api/matching/recommend` - Hybrid matching (vector recall + rule scoring + AI reasons)
-- `POST /api/ai/chat/stream` - Streaming chat (SSE)
-- `POST /api/ai/chat` - Non-streaming chat completion
-- `POST /api/ai/generate-description` - Generate club description
-- `POST /api/ai/suggest-tags` - Suggest tags for club
+- `GET /api/ai/health`
+- `POST /api/ai/chat/stream` (SSE), `POST /api/ai/chat`
+- `POST /api/ai/generate-description`, `POST /api/ai/suggest-tags` — admin only
+
+### Auth / Intents / Analytics
+- `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/status`
+- `POST /api/intents` — anonymized, deduped intent recording
+- `GET /api/analytics/summary` — aggregated dashboard metrics
 
 ### Health
-- `GET /api/health` - Backend health check
+- `GET /api/health`
 
 ---
 
-## Key Technical Features
+## Testing
 
-### 1. AI Provider Abstraction
-- Clean separation of business logic and AI implementation
-- Easy to swap between different LLM providers
-- Supports Anthropic Claude and OpenAI-compatible APIs out of the box
-
-### 2. Streaming Response
-- Server-Sent Events (SSE) for real-time streaming chat
-- Better UX than waiting for full completion
-- Progressive display of AI response
-
-### 3. Structured Output via Prompt Engineering
-- System prompts enforce JSON output format
-- Robust extraction handles extra text before/after JSON
-- Consistent schema for reliable parsing
-
-### 4. Error Handling
-- Classification of AI errors (invalid key, rate limit, network, etc.)
-- Proper HTTP status codes
-- Development mode exposes error details
-
-### 5. Full TypeScript
-- All code typed
-- Interfaces defined for all API contracts
-- Type safety across full stack
-
-### 6. Unit Testing
-- Frontend utilities and services unit-tested with Vitest
-- Tag parsing, validation, API client have test coverage
-- Easy to add more tests as features grow
-
----
-
-## File Structure Summary
-
-**Backend Highlights**:
-- Provider factory pattern for AI providers (easy to swap)
-- Service layer separates business logic from routes
-- Prisma ORM for type-safe database access
-- Express with proper middleware and centralized error handling
-- Complete CRUD with search, filter, statistics endpoints
-
-**Frontend Highlights**:
-- Element Plus UI framework with Chinese locale
-- Custom CSS theme with CSS variables for consistent design
-- Vue Router for SPA routing
-- Pinia for simple, reactive state management
-- Service layer separates business logic from components
-- Vitest for unit testing utilities and services
-- Full TypeScript end-to-end
-
----
-
-## Common Tasks
-
-### Adding a New Club
-
-1. Go to Admin page
-2. Click "添加社团" (Add Club button)
-3. Fill in required fields:
-   - 社团名称
-   - 分类
-   - 社团描述
-   - 入社要求
-   - 成员数
-   - 联系方式
-4. Optionally click "AI 自动生成描述" or "AI 推荐标签"
-5. Click "添加社团" to save
-
-### Using AI Matching
-
-1. Go to Matching page
-2. Fill preference form:
-   - Interests (add tags)
-   - 技能水平
-   - 目标
-3. Click "开始匹配"
-4. AI analyzes preferences and returns ranked recommendations
-5. Review match reasons and scores
-6. Click "联系社团" to get contact info
+```bash
+npm test                    # frontend (Vitest) + backend (Vitest + Supertest)
+npm run build                # tsc (backend) + vite build (frontend)
+npm run evaluate --workspace backend   # deterministic CI evaluation, see docs/evaluation/latest.md
+```
 
 ---
 
 ## Important Notes
 
 ### Responsive Design
+Mobile-first; mobile nav breakpoint at 768px; grids stack on small screens.
 
-All pages are fully responsive with mobile-first approach:
-- Mobile menu appears at 768px breakpoint
-- Desktop navigation transforms to mobile menu
-- Grid layouts stack on mobile
-- Cards maintain proportions but adapt to screen width
-- Modals use appropriate sizing for mobile
-
-### Performance Optimizations
-
-- No external heavy UI frameworks (custom lightweight CSS)
-- Debounced inputs for better UX
-- Lazy loading where appropriate
-- Static typing catches errors early
+### Known limitations
+See `README.md` → "已知限制" for the current, authoritative list (single admin password, SQLite single-writer, demo RAG corpus, etc.) — don't duplicate it here to avoid drift.
 
 ---
 
 ## Troubleshooting
 
-### Database migration issues
-
+### Database / migration issues
 ```bash
-cd backend
-npx prisma migrate dev
+cd backend && npx prisma migrate dev
+```
+
+### Vector search returns nothing / stale
+```bash
+cd backend && npm run index:vectors
 ```
 
 ### Frontend can't connect to backend
-
-Check:
-1. Backend is running on port 3001
-2. `VITE_API_URL` in `frontend/.env` points to correct backend URL
-3. CORS configuration in backend allows frontend origin
+1. Backend running on port 3001?
+2. `VITE_BACKEND_URL` in `frontend/.env` correct?
+3. CORS_ORIGIN in `backend/.env` includes the frontend origin?
 
 ### AI API errors
+1. `AI_API_KEY` set correctly in `backend/.env`?
+2. Key has quota on 阿里云百炼?
+3. Network can reach `https://dashscope.aliyuncs.com/compatible-mode/v1`?
+4. `GET /api/ai/health` reports `healthy: true`?
 
-Check:
-1. API key is correctly set in `backend/.env`
-2. API key has sufficient quota
-3. Network can reach your configured AI API endpoint (Anthropic or Volcano Engine)
+> Windows Git Bash note: inline `curl -d '{...中文...}'` mangles UTF-8. Put the body in a file and use `curl --data-binary @body.json` when testing endpoints with Chinese payloads.
 
 ---
 
 ## Contact & Support
 
-For issues or questions about this platform:
-1. Check [CLAUDE.md](CLAUDE.md)
-2. Review this documentation
+1. Check `README.md` for the full interview-facing narrative and deployment guide.
+2. Check this file for engineering/architecture details.
