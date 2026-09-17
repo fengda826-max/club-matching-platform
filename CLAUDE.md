@@ -306,6 +306,8 @@ cd frontend && npm run build # vite build
 
 Backend is validated by running it and exercising the endpoints (health, clubs, matching/recommend, ai/chat/stream, auth, intents, analytics). The camelCase JSON contract and the `event: metadata/chunk/usage/done/error` SSE format are preserved from the original so the frontend is unchanged.
 
+**Retrieval evaluation** — `python -m scripts.eval_retrieval` (needs `AI_API_KEY`) scores the vector recall on a hand-labeled multi-label query set and prints Precision@k / Recall@k / Precision@R / MAP / nDCG@5. Current corpus: 30 demo clubs / 150 knowledge passages / 32 queries.
+
 ---
 
 ## Important Notes
