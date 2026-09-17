@@ -50,7 +50,8 @@ cp .env.example .env            # 填入 AI_API_KEY（阿里云百炼）、ADMIN
 python -m uvicorn app.main:app --reload --port 3001
 ```
 
-启动时会自动建表、注入演示社团、构建 sqlite-vec 向量索引。前端：
+启动时会自动建表、注入社团、构建 sqlite-vec 向量索引。
+前端：
 
 ```bash
 cd frontend && npm install && npm run dev
