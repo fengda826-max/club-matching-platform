@@ -24,19 +24,13 @@ _EXTRACT_SYSTEM_PROMPT = """从用户的社团需求中提取偏好。只返回�
 - 不推测用户未表达的硬约束。"""
 
 _EXPLANATION_SYSTEM_PROMPT = """你负责把已有规则证据写成简洁推荐理由。只返回一个 JSON 对象，不要解释或 Markdown。
-严格格式：{"matches":[{"clubId":候选社团整数ID,"reason":"10到240字的中文理由","caveats":["最多3条注意事项"]}]}
+严格格式：{"matches":[{"clubId":候选社团整数ID,"reason":"40字以内、简洁的中文理由","caveats":["最多3条注意事项"]}]}
+理由要简短精炼（不超过 40 字），只依据候选自带的 evidence/caveats，不要罗列全部字段。
 每个候选 clubId 必须且只能出现一次，顺序与候选列表一致。不得改变分数、添加候选之外的社团、遗漏候选或编造事实。没有额外注意事项时 caveats 返回空数组。"""
 
 
 def _club_out(club: Club) -> dict:
     return ClubOut.model_validate(club).model_dump(by_alias=True, mode="json")
-
-
-def _public_club_facts(club: Club) -> dict:
-    facts = _club_out(club)
-    for key in ("contact", "createdAt", "updatedAt"):
-        facts.pop(key, None)
-    return facts
 
 
 def _match_base(match: RuleMatch) -> dict:
@@ -104,8 +98,16 @@ class RecommendationService:
             warning = "没有社团满足当前硬约束" if self.provider else "模型未配置，已使用规则评分"
             return self._rules_only(rule_matches, club_by_id, warning)
 
+        # 给 LLM 的候选只保留写理由所需的最小信息（clubId/name/category + 规则证据），
+        # 全量社团字段无助于"写理由"却显著抬高输入 token 与延迟。
         candidates = [
-            {**_match_base(match), "club": _public_club_facts(club_by_id[match.club_id])}
+            {
+                "clubId": match.club_id,
+                "name": club_by_id[match.club_id].name,
+                "category": club_by_id[match.club_id].category,
+                "evidence": match.evidence,
+                "caveats": match.caveats,
+            }
             for match in rule_matches
         ]
         payload = {
@@ -117,7 +119,7 @@ class RecommendationService:
                 ExplanationResult,
                 _EXPLANATION_SYSTEM_PROMPT,
                 json.dumps(payload, ensure_ascii=False),
-                900,
+                500,
                 signal,
             )
             explanation: ExplanationResult = result.data
