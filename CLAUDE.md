@@ -309,9 +309,14 @@ Backend is validated by running it and exercising the endpoints (health, clubs, 
 **Retrieval evaluation** — two harnesses, one per retrieval path (both need `AI_API_KEY`; corpus is 30 clubs / 210 passages, 7 sections each):
 
 - `python -m scripts.eval_retrieval` — the **matching** path (`retrieve_club_ids`, club-level recall that orders the candidate pool). 42 multi-label queries mixing clear intent with realistic vague/cross-category ones ("对找工作有帮助的社团", "想锻炼领导力", "有胜负欲想拿名次"). Live result: **MAP 0.934, nDCG@5 0.943, Recall@5 0.939, Precision@R 0.912**.
-- `python -m scripts.eval_qa_retrieval` — the **knowledge-base Q&A** path (`retrieve_passages`, passage/section-level recall used to ground `/api/ai/chat/stream`). 38 questions (fee / time / beginner-friendly / suitability + un-named vague ones). Live result: **club Hit@1 0.947, club Recall@5 0.974, section Hit@3 0.921, passage MRR 0.888**.
+- `python -m scripts.eval_qa_retrieval` — the **knowledge-base Q&A** path (`retrieve_passages`, passage/section-level recall used to ground `/api/ai/chat/stream`). 38 questions (fee / time / beginner-friendly / suitability + un-named vague ones). Live result: **club Hit@1 0.947, club Recall@5 0.974, section Hit@3 0.921, passage MRR 0.899**.
+- `python -m scripts.eval_qa_answer` — end-to-end **answer accuracy** (runs `grounded_chat`, keyword-heuristic grading). Two tiers: single-fact/anti-hallucination (**7/7**) vs cross-document comparison/aggregation (**6/7** — e.g. "哪个会费最低" fails because naive top-k RAG doesn't gather all clubs' fees to compare).
 
-Both print a per-query breakdown of misses; scores sit in a believable ~0.89–0.97 range (not a suspicious 1.0), and the misses are the genuinely ambiguous queries real retrieval also struggles with.
+Both retrieval harnesses print a per-query breakdown of misses; scores sit in a believable ~0.89–0.97 range (not a suspicious 1.0), and the misses are the genuinely ambiguous queries real retrieval also struggles with.
+
+**Chunking**: knowledge is split structurally by section (`【club · section】`); the `常见问答` section is further split into one chunk per Q&A pair (`flatten_knowledge._split_faq`) so multi-topic FAQ text doesn't dilute a single vector — 210 sections → 270 retrieval chunks, which lifted passage MRR 0.888 → 0.899.
+
+**Caveat (honest)**: single-fact answer accuracy is high partly because the demo corpus is small and clean (each fact lives in one clear place, few distractors); on a larger, noisier real corpus — and on cross-document reasoning — accuracy drops (see the cross-doc tier). Reranking (e.g. DashScope `gte-rerank`) would mainly improve `sources` precision@1, not answer correctness, since grounding already feeds the top-k passages to the model.
 
 ---
 

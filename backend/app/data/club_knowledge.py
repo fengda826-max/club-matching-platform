@@ -352,9 +352,18 @@ for _name, _secs in _EXTRA_SECTIONS.items():
     CLUB_KNOWLEDGE.setdefault(_name, []).extend(_secs)
 
 
+def _split_faq(content: str) -> list[str]:
+    """把“常见问答”里塞在一起的多个问答对拆成单条，让检索粒度对齐问句粒度。
+    原文形如“问：X？答：Y。问：Z？答：W。”，按“问：”边界切开。
+    """
+    parts = [p.strip() for p in content.split("问：") if p.strip()]
+    return [f"问：{p}" for p in parts] if len(parts) > 1 else [content]
+
+
 def flatten_knowledge(clubs_by_name: dict[str, int]) -> list[dict]:
     """展开为扁平的知识块列表。只保留能在 clubs_by_name 中找到的社团，附上 clubId。
     把社团名拼进被 embed 的文本，让“摄影协会”这类名字也参与语义匹配。
+    “常见问答”按单个问答对进一步分片，避免多主题挤在一个 chunk 里稀释向量。
     """
     docs: list[dict] = []
     for name, sections in CLUB_KNOWLEDGE.items():
@@ -362,9 +371,11 @@ def flatten_knowledge(clubs_by_name: dict[str, int]) -> list[dict]:
         if club_id is None:
             continue
         for item in sections:
-            docs.append({
-                "club_id": club_id,
-                "section": item["section"],
-                "content": f"【{name} · {item['section']}】{item['content']}",
-            })
+            pieces = _split_faq(item["content"]) if item["section"] == "常见问答" else [item["content"]]
+            for piece in pieces:
+                docs.append({
+                    "club_id": club_id,
+                    "section": item["section"],
+                    "content": f"【{name} · {item['section']}】{piece}",
+                })
     return docs
