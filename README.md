@@ -21,7 +21,8 @@
 
 失败集中在"对找工作有帮助的社团""哪个会费最低"这类**模糊/跨文档**问题——这指明了查询改写、重排序等下一步优化方向。
 
-工程优化：把「常见问答」按单个问答对分片（210→270 块）后问答召回 MRR 从 0.888 提升到 0.899；给 LLM 只喂写理由所需的最小候选信息，匹配接口端到端延迟从 ~5.3s 降到 ~2.4s（−55%）。
+工程优化：把「常见问答」按单个问答对分片（210→270 块）后问答召回 MRR 从 0.888 提升到 0.899；
+给 LLM 只喂写理由所需的最小候选信息，匹配接口端到端延迟从 ~5.3s 降到 ~2.4s（−55%）。
 
 ## 🏗️ 架构
 
@@ -34,7 +35,10 @@
 
 ## 🛠️ 技术栈
 
-Vue 3 + TypeScript + Vite + Pinia（前端）｜Python + FastAPI + SQLAlchemy + SQLite（后端）｜阿里云百炼 + LangChain + sqlite-vec（AI / RAG）｜Docker Compose + Nginx（部署）
+Vue 3 + TypeScript + Vite + Pinia（前端）
+Python + FastAPI + SQLAlchemy + SQLite（后端）
+阿里云百炼 + LangChain + sqlite-vec（AI / RAG）
+Docker Compose + Nginx（部署）
 
 ## 🚀 本地运行
 
