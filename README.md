@@ -19,7 +19,7 @@
 | 问答段落召回 | `eval_qa_retrieval.py` | 章节 Hit@3 **0.921**、段落 MRR **0.899** |
 | 端到端答案准确率 | `eval_qa_answer.py` | 单一事实/防幻觉 **7/7**、跨文档比较 **6/7** |
 
-失败集中在"对找工作有帮助的社团""哪个会费最低"这类**模糊/跨文档**问题——这也指明了查询改写、重排序等下一步优化方向。
+失败集中在"对找工作有帮助的社团""哪个会费最低"这类**模糊/跨文档**问题——这指明了查询改写、重排序等下一步优化方向。
 
 工程优化：把「常见问答」按单个问答对分片（210→270 块）后问答召回 MRR 从 0.888 提升到 0.899；给 LLM 只喂写理由所需的最小候选信息，匹配接口端到端延迟从 ~5.3s 降到 ~2.4s（−55%）。
 
@@ -50,14 +50,13 @@ cp .env.example .env            # 填入 AI_API_KEY（阿里云百炼）、ADMIN
 python -m uvicorn app.main:app --reload --port 3001
 ```
 
-启动时会自动建表、注入演示社团、构建 sqlite-vec 向量索引（有 Key 时）。前端：
+启动时会自动建表、注入演示社团、构建 sqlite-vec 向量索引。前端：
 
 ```bash
 cd frontend && npm install && npm run dev
 ```
 
-前端 `http://localhost:5175`，后端健康检查 `http://localhost:3001/api/health`。没有 AI Key 时仍可浏览社团、用结构化表单做规则匹配。
-
+前端 `http://localhost:5175`，后端健康检查 `http://localhost:3001/api/health`。
 ## 🐳 Docker 部署
 
 ```bash
