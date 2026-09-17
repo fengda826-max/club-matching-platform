@@ -306,7 +306,7 @@ cd frontend && npm run build # vite build
 
 Backend is validated by running it and exercising the endpoints (health, clubs, matching/recommend, ai/chat/stream, auth, intents, analytics). The camelCase JSON contract and the `event: metadata/chunk/usage/done/error` SSE format are preserved from the original so the frontend is unchanged.
 
-**Retrieval evaluation** — `python -m scripts.eval_retrieval` (needs `AI_API_KEY`) scores the vector recall on a hand-labeled multi-label query set and prints Precision@k / Recall@k / Precision@R / MAP / nDCG@5. Current corpus: 30 demo clubs / 210 knowledge passages (7 sections each) / 32 queries.
+**Retrieval evaluation** — `python -m scripts.eval_retrieval` (needs `AI_API_KEY`) scores the vector recall on a hand-labeled multi-label query set and prints Precision@k / Recall@k / Precision@R / MAP / nDCG@5, plus a per-query breakdown of where it misses. Corpus: 30 demo clubs / 210 knowledge passages (7 sections each) / 42 queries. The query set deliberately mixes clear-intent queries with realistic vague/cross-category ones ("对找工作有帮助的社团", "想锻炼领导力", "有胜负欲想拿名次"), so scores land in a believable ~0.91–0.94 range (MAP 0.934, nDCG@5 0.943, Recall@5 0.939) rather than a suspicious 1.0.
 
 ---
 
