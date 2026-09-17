@@ -306,7 +306,12 @@ cd frontend && npm run build # vite build
 
 Backend is validated by running it and exercising the endpoints (health, clubs, matching/recommend, ai/chat/stream, auth, intents, analytics). The camelCase JSON contract and the `event: metadata/chunk/usage/done/error` SSE format are preserved from the original so the frontend is unchanged.
 
-**Retrieval evaluation** — `python -m scripts.eval_retrieval` (needs `AI_API_KEY`) scores the vector recall on a hand-labeled multi-label query set and prints Precision@k / Recall@k / Precision@R / MAP / nDCG@5, plus a per-query breakdown of where it misses. Corpus: 30 demo clubs / 210 knowledge passages (7 sections each) / 42 queries. The query set deliberately mixes clear-intent queries with realistic vague/cross-category ones ("对找工作有帮助的社团", "想锻炼领导力", "有胜负欲想拿名次"), so scores land in a believable ~0.91–0.94 range (MAP 0.934, nDCG@5 0.943, Recall@5 0.939) rather than a suspicious 1.0.
+**Retrieval evaluation** — two harnesses, one per retrieval path (both need `AI_API_KEY`; corpus is 30 clubs / 210 passages, 7 sections each):
+
+- `python -m scripts.eval_retrieval` — the **matching** path (`retrieve_club_ids`, club-level recall that orders the candidate pool). 42 multi-label queries mixing clear intent with realistic vague/cross-category ones ("对找工作有帮助的社团", "想锻炼领导力", "有胜负欲想拿名次"). Live result: **MAP 0.934, nDCG@5 0.943, Recall@5 0.939, Precision@R 0.912**.
+- `python -m scripts.eval_qa_retrieval` — the **knowledge-base Q&A** path (`retrieve_passages`, passage/section-level recall used to ground `/api/ai/chat/stream`). 38 questions (fee / time / beginner-friendly / suitability + un-named vague ones). Live result: **club Hit@1 0.947, club Recall@5 0.974, section Hit@3 0.921, passage MRR 0.888**.
+
+Both print a per-query breakdown of misses; scores sit in a believable ~0.89–0.97 range (not a suspicious 1.0), and the misses are the genuinely ambiguous queries real retrieval also struggles with.
 
 ---
 
